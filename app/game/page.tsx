@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { GameState, Player } from "@/lib/types";
 import PhaseIndicator from "@/app/components/PhaseIndicator";
@@ -8,7 +8,7 @@ import RoleCard from "@/app/components/RoleCard";
 import VotePanel from "@/app/components/VotePanel";
 import MissionCard from "@/app/components/MissionCard";
 
-export default function GamePage() {
+function GamePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const gameId = searchParams.get("gameId");
@@ -573,5 +573,20 @@ export default function GamePage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function GamePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-slate-200 text-xl font-medium mb-4">게임을 불러오는 중...</div>
+          <div className="text-slate-400 text-sm">잠시만 기다려주세요</div>
+        </div>
+      </div>
+    }>
+      <GamePageContent />
+    </Suspense>
   );
 }
