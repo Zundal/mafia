@@ -1,0 +1,8 @@
+{
+  "gameId": "",
+  "status": "waiting",
+  "phase": "setup",
+  "players": [],
+  "currentNight": 0,
+  "history": []
+}
