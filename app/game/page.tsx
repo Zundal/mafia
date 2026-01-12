@@ -7,6 +7,7 @@ import PhaseIndicator from "@/app/components/PhaseIndicator";
 import RoleCard from "@/app/components/RoleCard";
 import VotePanel from "@/app/components/VotePanel";
 import MissionCard from "@/app/components/MissionCard";
+import MusicPlayer from "@/app/components/MusicPlayer";
 
 function GamePageContent() {
   const searchParams = useSearchParams();
@@ -406,6 +407,7 @@ function GamePageContent() {
             </div>
           )}
         </div>
+        <MusicPlayer />
       </div>
     );
   }
@@ -453,6 +455,7 @@ function GamePageContent() {
             새 게임 시작
           </button>
         </div>
+        <MusicPlayer />
       </div>
     );
   }
@@ -595,6 +598,7 @@ function GamePageContent() {
             {allReady ? "밤 페이즈 종료" : `모든 플레이어 준비 대기 중... (${readyCount}/${needsActionPlayers.length})`}
           </button>
         </div>
+        <MusicPlayer />
       </div>
     );
   }
@@ -641,6 +645,7 @@ function GamePageContent() {
             투표 시작
           </button>
         </div>
+        <MusicPlayer />
       </div>
     );
   }
@@ -691,6 +696,7 @@ function GamePageContent() {
               ))}
           </div>
         </div>
+        <MusicPlayer />
       </div>
     );
   }
@@ -826,6 +832,7 @@ function GamePageContent() {
           </>
         )}
       </div>
+      <MusicPlayer />
     </div>
   );
 }

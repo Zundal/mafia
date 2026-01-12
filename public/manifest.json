@@ -3,10 +3,12 @@
   "short_name": "집들이 미스터리",
   "description": "마피아 게임 - 6인용 집들이 파티 게임",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#000000",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "orientation": "any",
+  "categories": ["games", "entertainment"],
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

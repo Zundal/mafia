@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 -->
+  <rect width="512" height="512" rx="128" fill="#0f172a"/>
+  
+  <!-- 와인병 -->
+  <path d="M256 120C240 120 220 130 220 150L220 380C220 400 240 410 256 410C272 410 292 400 292 380L292 150C292 130 272 120 256 120Z" fill="#7c2d12"/>
+  
+  <!-- 와인 -->
+  <rect x="220" y="150" width="72" height="200" fill="#991b1b"/>
+  
+  <!-- 라벨 -->
+  <rect x="240" y="200" width="32" height="60" rx="4" fill="#fef3c7"/>
+  <text x="256" y="235" font-family="Arial" font-size="24" font-weight="bold" text-anchor="middle" fill="#7c2d12">🍷</text>
+  
+  <!-- 깨진 유리 조각 -->
+  <path d="M200 100L220 120L200 140Z" fill="#e5e7eb" opacity="0.8"/>
+  <path d="M312 100L292 120L312 140Z" fill="#e5e7eb" opacity="0.8"/>
+  <path d="M256 80L250 100L262 100Z" fill="#e5e7eb" opacity="0.8"/>
+</svg>

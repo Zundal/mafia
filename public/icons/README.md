@@ -11,21 +11,53 @@
 - icon-384x384.png
 - icon-512x512.png
 
-## 아이콘 생성 방법
+## 빠른 아이콘 생성 방법
 
-1. **PWA Asset Generator 사용** (권장):
-   ```bash
-   npx pwa-asset-generator your-icon.png public/icons
-   ```
+### 방법 1: PWA Builder (가장 쉬움) ⭐
 
-2. **온라인 도구 사용**:
-   - [PWA Asset Generator](https://github.com/elegantapp/pwa-asset-generator)
-   - [RealFaviconGenerator](https://realfavicongenerator.net/)
+1. [PWA Builder Image Generator](https://www.pwabuilder.com/imageGenerator) 방문
+2. `icon.svg` 파일을 업로드하거나 512x512 PNG 이미지 업로드
+3. "Generate" 클릭
+4. 생성된 아이콘들을 다운로드하여 이 폴더에 저장
 
-3. **수동 생성**:
-   - 512x512 크기의 아이콘을 준비
-   - 이미지 편집 도구로 각 크기로 리사이즈
+### 방법 2: pwa-asset-generator (CLI)
 
-## 임시 아이콘
+```bash
+# 전역 설치
+npm install -g pwa-asset-generator
 
-개발 중에는 임시로 단색 이미지를 사용할 수 있습니다. 하지만 프로덕션 배포 전에는 실제 아이콘으로 교체하는 것을 권장합니다.
+# 아이콘 생성 (512x512 원본 이미지 필요)
+pwa-asset-generator icon.png public/icons --icon-background "#0f172a" --icon-maskable true
+```
+
+### 방법 3: ImageMagick (macOS/Linux)
+
+```bash
+# 설치 (macOS)
+brew install imagemagick
+
+# 아이콘 생성
+for size in 72 96 128 144 152 192 384 512; do
+  convert icon.png -resize ${size}x${size} icon-${size}x${size}.png
+done
+```
+
+### 방법 4: 온라인 도구
+
+- [RealFaviconGenerator](https://realfavicongenerator.net/) - 다양한 플랫폼 아이콘 생성
+- [Favicon.io](https://favicon.io/) - 간단한 아이콘 생성
+
+## 현재 상태 확인
+
+```bash
+npm run generate-icons
+```
+
+이 명령어를 실행하면 필요한 아이콘 파일들의 존재 여부를 확인할 수 있습니다.
+
+## 참고
+
+- 아이콘은 최소 192x192, 권장 512x512 크기
+- 배경색: `#0f172a` (다크 슬레이트)
+- Maskable 아이콘 권장 (안드로이드)
+- PNG 형식 사용
