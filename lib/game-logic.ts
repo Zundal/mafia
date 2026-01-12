@@ -1,18 +1,12 @@
 import { GameState, Player, Role, Phase } from "./types";
 import { roleDistribution } from "./roles";
 
-export function createGame(gameId: string, playerNames: string[]): GameState {
-  if (playerNames.length !== 6) {
-    throw new Error("플레이어는 정확히 6명이어야 합니다.");
-  }
-
-  // 역할 섞기
-  const shuffledRoles = [...roleDistribution].sort(() => Math.random() - 0.5);
-  
-  const players: Player[] = playerNames.map((name, index) => ({
+export function createGame(gameId: string): GameState {
+  // 빈 플레이어 슬롯 6개 생성
+  const players: Player[] = Array.from({ length: 6 }, (_, index) => ({
     id: `player-${index}`,
-    name,
-    role: shuffledRoles[index] as Role,
+    name: "",
+    role: null,
     isAlive: true,
     mission: null,
     ready: false,
@@ -20,12 +14,53 @@ export function createGame(gameId: string, playerNames: string[]): GameState {
 
   return {
     gameId,
-    status: "playing",
+    status: "waiting",
     phase: "setup",
     players,
     currentNight: 0,
-    history: ["게임이 시작되었습니다."],
+    history: ["게임이 생성되었습니다. 플레이어들을 기다리는 중..."],
   };
+}
+
+export function joinGame(gameState: GameState, playerName: string): { success: boolean; playerId?: string; error?: string } {
+  if (!playerName || playerName.trim() === "") {
+    return { success: false, error: "이름을 입력해주세요." };
+  }
+
+  const trimmedName = playerName.trim();
+  
+  // 이미 같은 이름이 있는지 확인
+  if (gameState.players.some(p => p.name === trimmedName && p.name !== "")) {
+    return { success: false, error: "이미 사용 중인 이름입니다." };
+  }
+
+  // 빈 슬롯 찾기
+  const emptySlot = gameState.players.find(p => p.name === "");
+  if (!emptySlot) {
+    return { success: false, error: "게임이 가득 찼습니다. (최대 6명)" };
+  }
+
+  emptySlot.name = trimmedName;
+  return { success: true, playerId: emptySlot.id };
+}
+
+export function startGame(gameState: GameState): GameState {
+  const filledPlayers = gameState.players.filter(p => p.name !== "");
+  if (filledPlayers.length !== 6) {
+    throw new Error("6명의 플레이어가 모두 참여해야 게임을 시작할 수 있습니다.");
+  }
+
+  // 역할 섞기
+  const shuffledRoles = [...roleDistribution].sort(() => Math.random() - 0.5);
+  
+  gameState.players.forEach((player, index) => {
+    player.role = shuffledRoles[index] as Role;
+  });
+
+  gameState.status = "playing";
+  gameState.history = ["게임이 시작되었습니다."];
+  
+  return gameState;
 }
 
 export function assignMissions(players: Player[], missions: string[]): Player[] {
@@ -89,6 +124,8 @@ export function processNightAction(
         type: "kill",
         target: action.target,
       };
+      // 액션 완료 시 준비 상태로 변경
+      player.ready = true;
       break;
 
     case "investigate":
@@ -106,6 +143,8 @@ export function processNightAction(
         target: action.target,
         result: target?.role === "mafia",
       };
+      // 액션 완료 시 준비 상태로 변경
+      player.ready = true;
       break;
 
     case "protect":
@@ -120,6 +159,8 @@ export function processNightAction(
         type: "protect",
         target: action.target,
       };
+      // 액션 완료 시 준비 상태로 변경
+      player.ready = true;
       break;
   }
 
