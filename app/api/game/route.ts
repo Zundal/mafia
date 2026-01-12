@@ -20,13 +20,26 @@ export async function POST(request: NextRequest) {
 
     switch (action) {
       case "create": {
-        const { gameId, playerNames } = params;
-        gameState = createGame(gameId, playerNames);
-        
-        // 미션 할당
-        gameState.players = assignMissions(gameState.players, missions);
-        
-        return NextResponse.json(gameState);
+        try {
+          const { gameId, playerNames } = params;
+          
+          if (!gameId || !playerNames || !Array.isArray(playerNames)) {
+            return NextResponse.json({ error: "게임 ID와 플레이어 이름이 필요합니다." }, { status: 400 });
+          }
+          
+          if (playerNames.length !== 6) {
+            return NextResponse.json({ error: "플레이어는 정확히 6명이어야 합니다." }, { status: 400 });
+          }
+          
+          gameState = createGame(gameId, playerNames);
+          
+          // 미션 할당
+          gameState.players = assignMissions(gameState.players, missions);
+          
+          return NextResponse.json(gameState);
+        } catch (error: any) {
+          return NextResponse.json({ error: error.message || "게임 생성 중 오류가 발생했습니다." }, { status: 500 });
+        }
       }
 
       case "startNight": {
