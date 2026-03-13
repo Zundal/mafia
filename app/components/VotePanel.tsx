@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Player, GameState } from "@/lib/types";
+import { GameState } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface VotePanelProps {
   gameState: GameState;
@@ -22,53 +26,67 @@ export default function VotePanel({ gameState, currentPlayerId, onVote }: VotePa
 
   if (!currentPlayer || !currentPlayer.isAlive) {
     return (
-      <div className="glass border-red-500/30 text-slate-100 p-5 rounded-2xl">
-        <p className="font-medium">당신은 이미 탈락했습니다.</p>
-      </div>
+      <Card className="border-red-500/30 bg-red-500/5">
+        <CardContent className="pt-5">
+          <p className="text-slate-100 font-medium">당신은 이미 탈락했습니다.</p>
+        </CardContent>
+      </Card>
     );
   }
 
   if (currentPlayer.votedFor) {
     const votedPlayer = gameState.players.find((p) => p.id === currentPlayer.votedFor);
     return (
-      <div className="glass border-green-500/30 text-slate-100 p-5 rounded-2xl">
-        <p className="font-medium">이미 {votedPlayer?.name}님에게 투표하셨습니다.</p>
-      </div>
+      <Card className="border-green-500/30 bg-green-500/5">
+        <CardContent className="pt-5">
+          <p className="text-slate-100 font-medium flex items-center gap-2">
+            <Badge variant="success">✓ 투표 완료</Badge>
+            <span className="text-slate-300">{votedPlayer?.name}님에게 투표했습니다.</span>
+          </p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="glass rounded-2xl p-6 border border-slate-700/50">
-      <h3 className="text-slate-100 font-bold text-lg mb-5">투표할 사람을 선택하세요</h3>
-      <div className="space-y-2.5 mb-5">
-        {alivePlayers.map((player) => (
-          <button
-            key={player.id}
-            onClick={() => setSelectedTarget(player.id)}
-            className={`w-full p-4 rounded-xl text-left transition-all ${
-              selectedTarget === player.id
-                ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25"
-                : "glass-light text-slate-100 hover:bg-slate-800/50 border border-slate-700/50"
-            }`}
-          >
-            <div className="flex justify-between items-center">
-              <span>{player.name}</span>
-              {gameState.voteResults && gameState.voteResults[player.id] && (
-                <span className="text-sm font-medium opacity-80">
-                  ({gameState.voteResults[player.id]}표)
-                </span>
+    <Card className="border-slate-700/50">
+      <CardHeader>
+        <CardTitle>투표할 사람을 선택하세요</CardTitle>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="space-y-2.5 mb-5">
+          {alivePlayers.map((player) => (
+            <button
+              key={player.id}
+              onClick={() => setSelectedTarget(player.id)}
+              className={cn(
+                "w-full p-4 rounded-xl text-left transition-all active:scale-[0.97]",
+                selectedTarget === player.id
+                  ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25"
+                  : "glass-light text-slate-100 hover:bg-slate-800/50 border border-slate-700/50"
               )}
-            </div>
-          </button>
-        ))}
-      </div>
-      <button
-        onClick={handleVote}
-        disabled={!selectedTarget}
-        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 disabled:from-slate-700 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg shadow-purple-500/25 disabled:shadow-none"
-      >
-        투표하기
-      </button>
-    </div>
+            >
+              <div className="flex justify-between items-center">
+                <span>{player.name}</span>
+                {gameState.voteResults && gameState.voteResults[player.id] && (
+                  <Badge variant="purple">
+                    {gameState.voteResults[player.id]}표
+                  </Badge>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+        <Button
+          variant="gradient-vote"
+          size="xl"
+          className="w-full"
+          onClick={handleVote}
+          disabled={!selectedTarget}
+        >
+          투표하기
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
