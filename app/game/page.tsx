@@ -12,10 +12,17 @@ import { ToastContainer, toast } from "@/app/components/Toast";
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 flex items-center justify-center">
-      <div className="text-center animate-fade-in-up">
-        <div className="flex justify-center mb-4">
-          <div className="spinner" />
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 flex items-center justify-center overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-cyan-500/8 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-blue-500/8 rounded-full blur-3xl animate-float-delayed" />
+      </div>
+      <div className="relative text-center animate-fade-in-up">
+        <div className="flex justify-center mb-5">
+          <div className="relative">
+            <div className="absolute inset-0 blur-xl bg-cyan-500/20 scale-150" />
+            <div className="relative spinner" />
+          </div>
         </div>
         <div className="text-slate-200 text-lg font-medium mb-2">게임을 불러오는 중...</div>
         <div className="text-slate-500 text-sm">잠시만 기다려주세요</div>
@@ -211,14 +218,18 @@ function GamePageContent() {
 
   if (!gameState) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 flex items-center justify-center p-4">
-        <div className="text-center max-w-md animate-fade-in-up">
-          <div className="text-4xl mb-4">🔍</div>
-          <div className="text-red-400 text-xl font-medium mb-3">게임을 찾을 수 없습니다</div>
-          <div className="text-slate-400 text-sm mb-6">게임이 생성되지 않았거나 초기화되었습니다.</div>
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/3 left-1/4 w-56 h-56 bg-red-500/6 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-slate-500/6 rounded-full blur-3xl animate-float-delayed" />
+        </div>
+        <div className="relative text-center max-w-md animate-fade-in-up glass-card rounded-3xl p-8 border border-slate-700/40">
+          <div className="text-5xl mb-5">🔍</div>
+          <div className="text-red-400 text-xl font-bold mb-3">게임을 찾을 수 없습니다</div>
+          <div className="text-slate-400 text-sm mb-6 leading-relaxed">게임이 생성되지 않았거나 초기화되었습니다.</div>
           <button
             onClick={() => router.push("/")}
-            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-cyan-500/25 active:scale-95"
+            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg shadow-cyan-500/25 glow-cyan active:scale-95"
           >
             홈으로 돌아가기
           </button>
@@ -263,19 +274,26 @@ function GamePageContent() {
     const allJoined = joinedPlayers.length === 6;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4">
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-10%] left-[-5%] w-72 h-72 bg-cyan-500/6 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-[10%] right-[-5%] w-56 h-56 bg-blue-500/6 rounded-full blur-3xl animate-float-delayed" />
+        </div>
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="relative max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
-            className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
+            className="mb-4 glass-light hover:bg-slate-800/60 text-slate-300 hover:text-white font-medium py-2 px-4 rounded-xl transition-all border border-slate-700/50 hover:border-slate-600 text-sm flex items-center gap-2 active:scale-95"
           >
             ← 홈으로
           </button>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent text-center mb-6">
-            🍷 집들이 미스터리
-          </h1>
-          <div className="glass rounded-2xl p-5 mb-5 border border-cyan-500/30 bg-cyan-500/10 animate-fade-in-up">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400 bg-clip-text text-transparent">
+              🍷 집들이 미스터리
+            </h1>
+            <div className="divider-glow mt-3" />
+          </div>
+          <div className="glass-card rounded-2xl p-5 mb-5 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/8 to-blue-500/5 animate-fade-in-up">
             <p className="text-cyan-400 font-bold text-center mb-2">👤 플레이어 참여</p>
             {isHost && (
               <p className="text-amber-400 text-center mb-2 text-sm font-semibold">
@@ -374,26 +392,35 @@ function GamePageContent() {
 
   // 게임 종료 화면
   if (gameState.phase === "ended") {
+    const winnerGlow = gameState.winner === "citizens" ? "bg-green-500/8" : gameState.winner === "mafia" ? "bg-red-500/8" : "bg-amber-500/8";
+    const winnerOrb1 = gameState.winner === "citizens" ? "bg-green-500/10" : gameState.winner === "mafia" ? "bg-red-500/10" : "bg-amber-500/10";
+    const winnerOrb2 = gameState.winner === "citizens" ? "bg-emerald-500/8" : gameState.winner === "mafia" ? "bg-rose-500/8" : "bg-orange-500/8";
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4">
+      <div className={`relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 overflow-hidden`}>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className={`absolute top-0 left-0 right-0 h-64 ${winnerGlow} blur-3xl`} />
+          <div className={`absolute top-1/4 right-[-5%] w-64 h-64 ${winnerOrb1} rounded-full blur-3xl animate-float`} />
+          <div className={`absolute bottom-1/4 left-[-5%] w-48 h-48 ${winnerOrb2} rounded-full blur-3xl animate-float-delayed`} />
+        </div>
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="relative max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
-            className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
+            className="mb-4 glass-light hover:bg-slate-800/60 text-slate-300 hover:text-white font-medium py-2 px-4 rounded-xl transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
           >
             ← 홈으로
           </button>
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
-          <div className="glass rounded-2xl p-8 mb-6 border border-slate-700/50 animate-fade-in-up">
-            <h2 className="text-4xl font-bold text-center mb-6">
-              {gameState.winner === "citizens" && <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">🎉 시민 팀 승리!</span>}
-              {gameState.winner === "mafia" && <span className="bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent">🍷 마피아 팀 승리!</span>}
-              {gameState.winner === "drunkard" && <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">🥴 만취객 승리!</span>}
+          <div className="glass-card rounded-2xl p-6 sm:p-8 mb-6 border border-slate-700/40 animate-fade-in-up">
+            <h2 className="text-3xl sm:text-4xl font-bold text-center mb-2">
+              {gameState.winner === "citizens" && <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent text-glow-cyan">🎉 시민 팀 승리!</span>}
+              {gameState.winner === "mafia" && <span className="bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent text-glow-red">🍷 마피아 팀 승리!</span>}
+              {gameState.winner === "drunkard" && <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent text-glow-amber">🥴 만취객 승리!</span>}
             </h2>
+            <div className="divider-glow my-4" />
             <div className="space-y-2 mb-4">
               {gameState.history.map((event, index) => (
-                <p key={index} className="text-slate-300 text-sm leading-relaxed">{event}</p>
+                <p key={index} className="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-700/50 pl-3">{event}</p>
               ))}
             </div>
           </div>
@@ -433,12 +460,31 @@ function GamePageContent() {
     const hasCompletedAction = currentPlayer && canAct && currentPlayer.ready;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 p-4">
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 p-3 sm:p-4 overflow-hidden">
+        {/* 밤 앰비언트 */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-5%] right-[10%] w-80 h-80 bg-purple-600/10 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-[10%] left-[-5%] w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl animate-float-delayed" />
+          <div className="absolute top-[40%] right-[-10%] w-48 h-48 bg-violet-500/8 rounded-full blur-3xl animate-float-slow" />
+          {/* 별빛 효과 */}
+          {[...Array(8)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 rounded-full bg-white/40 star"
+              style={{
+                top: `${10 + i * 11}%`,
+                left: `${5 + i * 12}%`,
+                animationDelay: `${i * 0.3}s`,
+                animationDuration: `${2 + i * 0.4}s`,
+              }}
+            />
+          ))}
+        </div>
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="relative max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
-            className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
+            className="mb-4 glass-light hover:bg-slate-800/60 text-slate-300 hover:text-white font-medium py-2 px-4 rounded-xl transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
           >
             ← 홈으로
           </button>
@@ -447,7 +493,7 @@ function GamePageContent() {
           {currentPlayer?.mission && <MissionCard mission={currentPlayer.mission} />}
 
           {canAct ? (
-            <div className="glass rounded-2xl p-6 mb-4 border border-slate-700/50 animate-fade-in-up">
+            <div className="glass-card rounded-2xl p-5 sm:p-6 mb-4 border border-purple-500/20 animate-fade-in-up">
               {hasCompletedAction ? (
                 <div className="text-center">
                   <div className="mb-4 p-4 glass border-green-500/30 bg-green-500/10 rounded-xl">
@@ -503,12 +549,18 @@ function GamePageContent() {
               )}
             </div>
           ) : (
-            <div className="glass rounded-2xl p-6 mb-4 border border-slate-700/50 text-center">
+            <div className="glass-card rounded-2xl p-6 mb-4 border border-indigo-500/20 text-center animate-fade-in-up">
+              <div className="text-4xl mb-3">
+                {currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen" ? "😴" : "⏳"}
+              </div>
               <p className="text-slate-200 font-medium">
                 {currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen"
                   ? "🌙 밤입니다. 푹 주무세요..."
                   : "다른 플레이어의 차례를 기다리는 중..."}
               </p>
+              {(currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen") && (
+                <p className="text-slate-500 text-xs mt-2">다른 플레이어들이 행동을 완료할 때까지 화면을 보지 마세요</p>
+              )}
             </div>
           )}
 
@@ -555,22 +607,31 @@ function GamePageContent() {
   // 낮 페이즈
   if (gameState.phase === "day") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-amber-950 to-orange-950 p-4">
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-amber-950 to-orange-950 p-3 sm:p-4 overflow-hidden">
+        {/* 낮 앰비언트 */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[-15%] left-[50%] -translate-x-1/2 w-96 h-48 bg-amber-500/15 rounded-full blur-3xl" />
+          <div className="absolute top-[5%] right-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-[15%] left-[5%] w-48 h-48 bg-amber-600/8 rounded-full blur-3xl animate-float-delayed" />
+        </div>
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="relative max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
-            className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
+            className="mb-4 glass-light hover:bg-slate-800/60 text-slate-300 hover:text-white font-medium py-2 px-4 rounded-xl transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
           >
             ← 홈으로
           </button>
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
 
-          <div className="glass rounded-2xl p-6 mb-6 border border-slate-700/50 animate-fade-in-up">
-            <h3 className="text-slate-100 font-bold text-lg mb-4">📰 아침 뉴스</h3>
-            <div className="space-y-2">
+          <div className="glass-card rounded-2xl p-5 sm:p-6 mb-6 border border-amber-500/20 animate-fade-in-up">
+            <h3 className="text-amber-300 font-bold text-lg mb-4 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-base">📰</span>
+              아침 뉴스
+            </h3>
+            <div className="space-y-2.5">
               {gameState.history.slice(-3).map((event, index) => (
-                <p key={index} className="text-slate-300 text-sm leading-relaxed">{event}</p>
+                <p key={index} className="text-slate-300 text-sm leading-relaxed border-l-2 border-amber-500/30 pl-3">{event}</p>
               ))}
             </div>
           </div>
@@ -588,9 +649,9 @@ function GamePageContent() {
 
           <button
             onClick={handleStartVoting}
-            className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg shadow-amber-500/25 active:scale-95"
+            className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-amber-500/30 glow-amber active:scale-95"
           >
-            투표 시작
+            🗳️ 투표 시작
           </button>
         </div>
         <MusicPlayer />
@@ -600,17 +661,39 @@ function GamePageContent() {
 
   // 투표 페이즈
   if (gameState.phase === "voting") {
+    const aliveCount = gameState.players.filter((p) => p.isAlive).length;
+    const votedCount = gameState.players.filter((p) => p.isAlive && p.votedFor).length;
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-pink-950 p-4">
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-pink-950 p-3 sm:p-4 overflow-hidden">
+        {/* 투표 앰비언트 - 긴장감 */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[5%] left-[-5%] w-72 h-72 bg-pink-600/10 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-[10%] right-[-5%] w-64 h-64 bg-purple-600/10 rounded-full blur-3xl animate-float-delayed" />
+          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-rose-500/6 rounded-full blur-3xl animate-urgent" />
+        </div>
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="relative max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
-            className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
+            className="mb-4 glass-light hover:bg-slate-800/60 text-slate-300 hover:text-white font-medium py-2 px-4 rounded-xl transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
           >
             ← 홈으로
           </button>
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
+
+          {/* 투표 진행률 */}
+          <div className="glass-card rounded-2xl p-4 mb-4 border border-pink-500/20">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-slate-300 text-sm font-medium">투표 현황</span>
+              <span className="text-pink-400 text-sm font-bold">{votedCount} / {aliveCount}명</span>
+            </div>
+            <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
+                style={{ width: `${aliveCount > 0 ? (votedCount / aliveCount) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
 
           <VotePanel
             gameState={gameState}
@@ -618,25 +701,28 @@ function GamePageContent() {
             onVote={handleVote}
           />
 
-          <div className="mt-6 space-y-2.5">
+          <div className="mt-4 space-y-2">
+            <p className="text-slate-500 text-xs text-center mb-2">생존자 투표 현황</p>
             {gameState.players
               .filter((p) => p.isAlive)
               .map((player) => (
                 <div
                   key={player.id}
-                  className="glass rounded-xl p-4 text-slate-100 border border-slate-700/50"
+                  className={`glass rounded-xl p-3.5 text-slate-100 border transition-all ${
+                    player.votedFor ? "border-green-500/20 bg-green-500/5" : "border-slate-700/40"
+                  }`}
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-medium">{player.name}</span>
+                    <span className="font-medium text-sm">{player.name}</span>
                     <span className="text-sm flex items-center gap-2">
                       {player.votedFor ? (
-                        <span className="text-green-400 font-medium">✓ 투표 완료</span>
+                        <span className="text-green-400 text-xs font-semibold bg-green-500/15 px-2 py-0.5 rounded-full">✓ 투표 완료</span>
                       ) : (
-                        <span className="text-slate-400">⏳ 대기 중</span>
+                        <span className="text-slate-500 text-xs">⏳ 대기 중</span>
                       )}
                       {gameState.voteResults?.[player.id] && (
-                        <span className="text-cyan-400 font-medium">
-                          ({gameState.voteResults[player.id]}표)
+                        <span className="text-pink-400 font-bold text-xs bg-pink-500/15 px-2 py-0.5 rounded-full">
+                          {gameState.voteResults[player.id]}표
                         </span>
                       )}
                     </span>
@@ -658,12 +744,16 @@ function GamePageContent() {
   const gameStarted = gameState.status === "playing" && gameState.players[0]?.role !== null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4">
+    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-5%] right-[10%] w-64 h-64 bg-cyan-500/6 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-[10%] left-[5%] w-56 h-56 bg-blue-500/6 rounded-full blur-3xl animate-float-delayed" />
+      </div>
       <ToastContainer />
-      <div className="max-w-2xl mx-auto">
+      <div className="relative max-w-2xl mx-auto pb-28">
         <button
           onClick={() => router.push("/")}
-          className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
+          className="mb-4 glass-light hover:bg-slate-800/60 text-slate-300 hover:text-white font-medium py-2 px-4 rounded-xl transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
         >
           ← 홈으로
         </button>
@@ -698,11 +788,14 @@ function GamePageContent() {
           </div>
         )}
 
-        <div className="glass rounded-2xl p-6 mb-6 border border-slate-700/50">
-          <h3 className="text-slate-100 font-bold text-lg mb-4">
+        <div className="glass-card rounded-2xl p-5 sm:p-6 mb-6 border border-slate-700/40">
+          <h3 className="text-slate-100 font-bold text-lg mb-2 flex items-center gap-2">
+            <span className="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center text-sm">
+              {gameStarted ? "🎭" : "👥"}
+            </span>
             {gameStarted ? "역할 배정" : "플레이어 목록"}
           </h3>
-          <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+          <p className="text-slate-400 text-sm mb-4 leading-relaxed">
             {gameStarted
               ? "각 플레이어는 자신의 역할을 확인한 후, 폰을 다음 사람에게 넘겨주세요."
               : "모든 플레이어가 참여하면 게임을 시작할 수 있습니다."}

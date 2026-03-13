@@ -91,14 +91,14 @@ export default function MusicPlayer() {
     <>
       {/* 자동재생 힌트 */}
       {showHint && (
-        <div className="fixed bottom-[88px] right-4 z-40 pointer-events-none">
+        <div className="fixed bottom-[104px] right-4 z-40 pointer-events-none" style={{ bottom: "calc(max(1rem, env(safe-area-inset-bottom)) + 72px)" }}>
           <div className="bg-cyan-500/90 text-white text-xs px-3 py-1.5 rounded-full shadow-lg font-medium whitespace-nowrap animate-bounce">
             🎵 화면을 터치하면 음악이 시작됩니다
           </div>
         </div>
       )}
 
-      <div className="fixed bottom-4 right-4 z-50">
+      <div className="fixed right-4 z-50" style={{ bottom: "max(1rem, env(safe-area-inset-bottom))" }}>
         <div className="glass border border-cyan-500/20 bg-gradient-to-br from-slate-900/90 to-cyan-950/60 rounded-2xl shadow-xl shadow-cyan-900/20 backdrop-blur-xl overflow-hidden transition-all duration-300 w-[180px]">
 
           {/* 메인 컨트롤 */}
