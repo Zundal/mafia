@@ -33,6 +33,7 @@ export interface GameState {
   voteResults?: Record<string, number>;
   winner?: "citizens" | "mafia" | "drunkard";
   history: string[];
+  phaseEndTime?: number; // Unix timestamp (ms) when current phase auto-advances
 }
 
 export interface RoleInfo {

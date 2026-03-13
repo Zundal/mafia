@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { GameState, Player } from "@/lib/types";
 import PhaseIndicator from "@/app/components/PhaseIndicator";
@@ -37,6 +37,64 @@ function LoadingScreen() {
   );
 }
 
+// 페이즈별 제한 시간 (초) - 서버와 동일하게 맞춤
+const PHASE_DURATIONS_SEC = {
+  night: 60,
+  day: 120,
+  voting: 90,
+} as const;
+
+function PhaseTimer({ phaseEndTime, phase }: { phaseEndTime?: number; phase: string }) {
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  useEffect(() => {
+    if (!phaseEndTime || !["night", "day", "voting"].includes(phase)) return;
+    const update = () => {
+      const remaining = Math.max(0, Math.ceil((phaseEndTime - Date.now()) / 1000));
+      setTimeLeft(remaining);
+    };
+    update();
+    const interval = setInterval(update, 500);
+    return () => clearInterval(interval);
+  }, [phaseEndTime, phase]);
+
+  if (!phaseEndTime || !["night", "day", "voting"].includes(phase)) return null;
+
+  const totalSec = PHASE_DURATIONS_SEC[phase as keyof typeof PHASE_DURATIONS_SEC] ?? 60;
+  const pct = Math.max(0, Math.min(100, (timeLeft / totalSec) * 100));
+  const isUrgent = timeLeft <= 10;
+  const isWarning = timeLeft <= 30;
+
+  const barColor = isUrgent
+    ? "bg-gradient-to-r from-red-500 to-rose-500"
+    : isWarning
+    ? "bg-gradient-to-r from-amber-500 to-orange-500"
+    : "bg-gradient-to-r from-cyan-500 to-blue-500";
+
+  const textColor = isUrgent ? "text-red-400" : isWarning ? "text-amber-400" : "text-cyan-400";
+
+  const mins = Math.floor(timeLeft / 60);
+  const secs = timeLeft % 60;
+  const timeStr = mins > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${secs}초`;
+
+  return (
+    <div className={`mb-4 p-3 rounded-xl glass border ${isUrgent ? "border-red-500/40 bg-red-500/10" : isWarning ? "border-amber-500/40 bg-amber-500/10" : "border-slate-700/50"} ${isUrgent ? "animate-pulse" : ""}`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-slate-400 text-xs font-medium">⏱ 제한 시간</span>
+        <span className={`font-bold text-base tabular-nums ${textColor}`}>
+          {timeLeft === 0 ? "시간 초과!" : timeStr}
+        </span>
+      </div>
+      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function GamePageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -47,6 +105,7 @@ function GamePageContent() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [playerName, setPlayerName] = useState("");
+  const advancingRef = useRef(false);
 
   useEffect(() => {
     if (!gameId) {
@@ -61,6 +120,33 @@ function GamePageContent() {
     const interval = setInterval(fetchGameState, 2000);
     return () => clearInterval(interval);
   }, [gameId, router]);
+
+  // 타이머 만료 시 자동으로 다음 페이즈로 전환
+  useEffect(() => {
+    if (!gameState?.phaseEndTime) return;
+    if (!["night", "day", "voting"].includes(gameState.phase)) return;
+
+    const delay = Math.max(0, gameState.phaseEndTime - Date.now());
+    const timeout = setTimeout(async () => {
+      if (advancingRef.current) return;
+      advancingRef.current = true;
+      try {
+        const response = await fetch("/api/game", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "advancePhase" }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setGameState(data);
+        }
+      } finally {
+        advancingRef.current = false;
+      }
+    }, delay + 200); // 200ms 여유
+
+    return () => clearTimeout(timeout);
+  }, [gameState?.phaseEndTime, gameState?.phase]);
 
   const fetchGameState = async () => {
     try {
@@ -495,6 +581,7 @@ function GamePageContent() {
             ← 홈으로
           </Button>
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
+          <PhaseTimer phaseEndTime={gameState.phaseEndTime} phase={gameState.phase} />
 
           {currentPlayer?.mission && <MissionCard mission={currentPlayer.mission} />}
 
@@ -632,6 +719,7 @@ function GamePageContent() {
             ← 홈으로
           </Button>
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
+          <PhaseTimer phaseEndTime={gameState.phaseEndTime} phase={gameState.phase} />
 
           <Card className="border-amber-500/20 mb-6 animate-fade-in-up">
             <CardHeader>
@@ -691,6 +779,7 @@ function GamePageContent() {
             ← 홈으로
           </Button>
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
+          <PhaseTimer phaseEndTime={gameState.phaseEndTime} phase={gameState.phase} />
 
           {/* 투표 진행률 */}
           <Card className="border-pink-500/20 mb-4">
