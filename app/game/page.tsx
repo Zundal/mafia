@@ -877,7 +877,6 @@ function GamePageContent() {
             </button>
           </>
         )}
-        </div>
       </div>
       <MusicPlayer />
     </div>
