@@ -115,13 +115,13 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4 flex flex-col items-center justify-center">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 flex flex-col items-center justify-center pb-28">
       <ToastContainer />
 
-      <div className="w-full max-w-md glass rounded-3xl p-8 shadow-2xl border border-slate-700/50 animate-fade-in-up">
+      <div className="w-full max-w-md glass rounded-3xl p-5 sm:p-8 shadow-2xl border border-slate-700/50 animate-fade-in-up">
         {/* 로고 영역 */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
             🍷 집들이 미스터리
           </h1>
           <p className="text-slate-300 text-sm font-medium">

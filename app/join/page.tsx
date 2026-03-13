@@ -16,8 +16,8 @@ export default function JoinPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4 flex flex-col items-center justify-center">
-      <div className="w-full max-w-md glass rounded-3xl p-8 shadow-2xl border border-slate-700/50">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 flex flex-col items-center justify-center">
+      <div className="w-full max-w-md glass rounded-3xl p-5 sm:p-8 shadow-2xl border border-slate-700/50">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent text-center mb-3">
           🎮 게임 참여
         </h1>

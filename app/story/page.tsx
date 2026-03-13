@@ -7,20 +7,20 @@ export default function StoryPage() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4 pb-12">
+    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 pb-12">
       <div className="max-w-4xl mx-auto">
         {/* 헤더 */}
-        <div className="text-center mb-8 pt-8">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
+        <div className="text-center mb-6 sm:mb-8 pt-5 sm:pt-8">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent mb-3">
             🍷 집들이 미스터리
           </h1>
-          <p className="text-slate-300 text-lg font-medium">
+          <p className="text-slate-300 text-base sm:text-lg font-medium">
             깨진 와인병의 비밀
           </p>
         </div>
 
         {/* 스토리 개요 */}
-        <section className="glass rounded-2xl p-8 mb-6 border border-slate-700/50">
+        <section className="glass rounded-2xl p-5 sm:p-8 mb-6 border border-slate-700/50">
           <h2 className="text-2xl font-bold text-slate-100 mb-4 flex items-center gap-2">
             <span className="text-3xl">📖</span>
             스토리 개요
@@ -42,7 +42,7 @@ export default function StoryPage() {
         </section>
 
         {/* 역할 소개 */}
-        <section className="glass rounded-2xl p-8 mb-6 border border-slate-700/50">
+        <section className="glass rounded-2xl p-5 sm:p-8 mb-6 border border-slate-700/50">
           <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-2">
             <span className="text-3xl">🎭</span>
             역할 소개 (총 6인)
@@ -90,7 +90,7 @@ export default function StoryPage() {
         </section>
 
         {/* 핵심 재미 요소 */}
-        <section className="glass rounded-2xl p-8 mb-6 border border-slate-700/50">
+        <section className="glass rounded-2xl p-5 sm:p-8 mb-6 border border-slate-700/50">
           <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-2">
             <span className="text-3xl">✨</span>
             게임의 핵심 재미 요소
@@ -136,7 +136,7 @@ export default function StoryPage() {
         </section>
 
         {/* 게임 진행 순서 */}
-        <section className="glass rounded-2xl p-8 mb-6 border border-slate-700/50">
+        <section className="glass rounded-2xl p-5 sm:p-8 mb-6 border border-slate-700/50">
           <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-2">
             <span className="text-3xl">🌙</span>
             게임 진행 순서
@@ -202,7 +202,7 @@ export default function StoryPage() {
         </section>
 
         {/* 집들이 꿀팁 */}
-        <section className="glass rounded-2xl p-8 mb-6 border border-slate-700/50">
+        <section className="glass rounded-2xl p-5 sm:p-8 mb-6 border border-slate-700/50">
           <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-2">
             <span className="text-3xl">💡</span>
             집들이 꿀팁 (Host Guide)

@@ -16,7 +16,7 @@ export default function RoleCard({ player, showRole = false, isCurrentPlayer = f
     <div
       className={`p-5 rounded-2xl border transition-all ${
         isCurrentPlayer
-          ? "glass border-cyan-500/50 shadow-lg shadow-cyan-500/20 scale-105 ring-2 ring-cyan-500/30"
+          ? "glass border-cyan-500/50 shadow-lg shadow-cyan-500/20 ring-2 ring-cyan-500/30"
           : player.isAlive
           ? "glass border-slate-700/50 hover:border-slate-600/50"
           : "glass border-red-500/30 opacity-60 bg-red-950/20"

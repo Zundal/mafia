@@ -263,16 +263,16 @@ function GamePageContent() {
     const allJoined = joinedPlayers.length === 6;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4">
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
             className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
           >
             ← 홈으로
           </button>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent text-center mb-6">
+          <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent text-center mb-6">
             🍷 집들이 미스터리
           </h1>
           <div className="glass rounded-2xl p-5 mb-5 border border-cyan-500/30 bg-cyan-500/10 animate-fade-in-up">
@@ -375,9 +375,9 @@ function GamePageContent() {
   // 게임 종료 화면
   if (gameState.phase === "ended") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4">
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
             className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
@@ -433,9 +433,9 @@ function GamePageContent() {
     const hasCompletedAction = currentPlayer && canAct && currentPlayer.ready;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 p-3 sm:p-4">
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
             className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
@@ -555,9 +555,9 @@ function GamePageContent() {
   // 낮 페이즈
   if (gameState.phase === "day") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-amber-950 to-orange-950 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-amber-950 to-orange-950 p-3 sm:p-4">
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
             className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
@@ -601,9 +601,9 @@ function GamePageContent() {
   // 투표 페이즈
   if (gameState.phase === "voting") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-pink-950 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-pink-950 p-3 sm:p-4">
         <ToastContainer />
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto pb-28">
           <button
             onClick={() => router.push("/")}
             className="mb-4 glass-light hover:bg-slate-800/50 text-slate-300 font-medium py-2 px-4 rounded-lg transition-all border border-slate-700/50 text-sm flex items-center gap-2 active:scale-95"
@@ -658,7 +658,7 @@ function GamePageContent() {
   const gameStarted = gameState.status === "playing" && gameState.players[0]?.role !== null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4">
       <ToastContainer />
       <div className="max-w-2xl mx-auto">
         <button
