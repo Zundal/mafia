@@ -232,19 +232,117 @@ export default function StoryPage() {
           </div>
         </section>
 
+        {/* 토론 전술 가이드 */}
+        <section className="glass rounded-2xl p-5 sm:p-8 mb-6 border border-slate-700/50">
+          <h2 className="text-2xl font-bold text-slate-100 mb-6 flex items-center gap-2">
+            <span className="text-3xl">🧠</span>
+            토론 전술 가이드
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {[
+              {
+                icon: "🍷",
+                title: "범인(마피아) 전술",
+                color: "from-red-500/10 to-rose-500/10 border-red-500/20",
+                titleColor: "text-red-400",
+                tips: [
+                  "히든 미션 수행으로 자신이 눈에 띄지 않도록 하기",
+                  "목격자(경찰)를 먼저 찾아서 제거 우선순위에 올리기",
+                  "만취객처럼 행동해서 의심을 분산시키기",
+                  "\"나도 저 사람 이상한 것 같아요\" 동조 전술",
+                ],
+              },
+              {
+                icon: "🕵️",
+                title: "목격자(경찰) 전술",
+                color: "from-blue-500/10 to-cyan-500/10 border-blue-500/20",
+                titleColor: "text-blue-400",
+                tips: [
+                  "조사 결과를 바로 공개하면 표적이 됨 — 신중하게 활용",
+                  "밤 액션 후 범인으로 의심되는 자를 넌지시 언급",
+                  "수습반장(의사)과 비밀 신호 맞추기 (눈빛이나 행동)",
+                  "만취객 행동과 진짜 수상한 행동을 구분하는 것이 핵심",
+                ],
+              },
+              {
+                icon: "🧹",
+                title: "수습반장(의사) 전술",
+                color: "from-green-500/10 to-emerald-500/10 border-green-500/20",
+                titleColor: "text-green-400",
+                tips: [
+                  "목격자가 누구인지 눈치채면 보호 우선순위 1위",
+                  "연속으로 같은 사람을 보호하면 패턴이 읽힘",
+                  "자신을 보호하는 것도 전략 — 본인 생존이 팀에 도움",
+                  "낮에 지나치게 조용하면 의심받으니 참여 필수",
+                ],
+              },
+              {
+                icon: "🥴",
+                title: "만취객 전술",
+                color: "from-amber-500/10 to-orange-500/10 border-amber-500/20",
+                titleColor: "text-amber-400",
+                tips: [
+                  "너무 노골적으로 의심받으려 하면 오히려 무시당함",
+                  "히든 미션을 과하게 수행해 자연스럽게 눈에 띄기",
+                  "\"나 사실 좀 이상한 것 같지 않아요?\" 은근 어필",
+                  "범인인 척 흘리다가 \"아니에요~\" 하는 심리전이 포인트",
+                ],
+              },
+            ].map((item) => (
+              <div key={item.title} className={`glass rounded-xl p-4 border bg-gradient-to-br ${item.color}`}>
+                <h3 className={`font-bold text-sm mb-3 flex items-center gap-2 ${item.titleColor}`}>
+                  <span>{item.icon}</span> {item.title}
+                </h3>
+                <ul className="space-y-1.5">
+                  {item.tips.map((tip, i) => (
+                    <li key={i} className="text-slate-300 text-xs leading-relaxed flex items-start gap-1.5">
+                      <span className="text-slate-500 mt-0.5">•</span>
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 승리 조건 한눈에 보기 */}
+        <section className="glass rounded-2xl p-5 sm:p-8 mb-6 border border-slate-700/50">
+          <h2 className="text-2xl font-bold text-slate-100 mb-5 flex items-center gap-2">
+            <span className="text-3xl">🏆</span>
+            승리 조건 한눈에 보기
+          </h2>
+          <div className="space-y-3">
+            {[
+              { emoji: "🎉", team: "시민 팀 승리", color: "border-green-500/30 bg-green-500/8", badge: "bg-green-500/20 text-green-400", condition: "낮 투표에서 범인(마피아)을 쫓아내면 즉시 승리", warning: null },
+              { emoji: "🍷", team: "마피아 팀 승리", color: "border-red-500/30 bg-red-500/8", badge: "bg-red-500/20 text-red-400", condition: "살아있는 시민 수 ≤ 살아있는 마피아 수가 되는 순간 승리", warning: null },
+              { emoji: "🥴", team: "만취객 단독 승리", color: "border-amber-500/30 bg-amber-500/8", badge: "bg-amber-500/20 text-amber-400", condition: "낮 투표에서 만취객이 지목되어 쫓겨나면 즉시 승리", warning: "⚠️ 이 경우 시민팀과 마피아팀 모두 패배!" },
+            ].map((item) => (
+              <div key={item.team} className={`rounded-xl p-4 border ${item.color}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-xl">{item.emoji}</span>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${item.badge}`}>{item.team}</span>
+                </div>
+                <p className="text-slate-300 text-sm leading-relaxed">{item.condition}</p>
+                {item.warning && <p className="text-amber-400 text-xs font-semibold mt-2">{item.warning}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* 버튼 */}
-        <div className="flex gap-4">
+        <div className="flex gap-3">
           <button
             onClick={() => router.push("/")}
-            className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-lg shadow-cyan-500/25"
+            className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-cyan-500/25 glow-cyan active:scale-95"
           >
-            게임 시작하기
+            🎮 게임 시작하기
           </button>
           <button
             onClick={() => router.back()}
-            className="px-6 py-4 glass-light hover:bg-slate-800/50 text-slate-100 font-medium rounded-xl transition-all border border-slate-700/50"
+            className="px-5 py-4 glass-light hover:bg-slate-800/50 text-slate-100 font-medium rounded-2xl transition-all border border-slate-700/50 active:scale-95"
           >
-            뒤로가기
+            ← 뒤로
           </button>
         </div>
       </div>
