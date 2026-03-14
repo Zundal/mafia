@@ -12,7 +12,7 @@ const Separator = React.forwardRef<
     className={cn(
       orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
       glow
-        ? "bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent"
+        ? "bg-gradient-to-r from-transparent via-amber-500/40 to-transparent"
         : "bg-border",
       className
     )}

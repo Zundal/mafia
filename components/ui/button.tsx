@@ -21,7 +21,7 @@ const buttonVariants = cva(
         link:
           "text-primary underline-offset-4 hover:underline",
         gradient:
-          "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-400",
+          "bg-gradient-to-r from-red-800 via-rose-700 to-red-700 text-white shadow-lg shadow-red-900/40 hover:from-red-700 hover:via-rose-600 hover:to-red-600",
         "gradient-purple":
           "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 hover:from-indigo-500 hover:to-purple-500",
         "gradient-vote":

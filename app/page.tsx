@@ -120,28 +120,28 @@ export default function Home() {
   };
 
   return (
-    <main className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 flex flex-col items-center justify-center pb-28 overflow-hidden">
+    <main className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/60 to-stone-950 p-3 sm:p-4 flex flex-col items-center justify-center pb-28 overflow-hidden">
       {/* 배경 앰비언트 오브 */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-72 h-72 bg-cyan-500/8 rounded-full blur-3xl animate-float" />
-        <div className="absolute top-[30%] right-[-10%] w-64 h-64 bg-purple-500/8 rounded-full blur-3xl animate-float-delayed" />
-        <div className="absolute bottom-[10%] left-[10%] w-48 h-48 bg-blue-500/8 rounded-full blur-3xl animate-float-slow" />
+        <div className="absolute top-[-10%] left-[-5%] w-72 h-72 bg-red-900/15 rounded-full blur-3xl animate-float" />
+        <div className="absolute top-[30%] right-[-10%] w-64 h-64 bg-amber-900/10 rounded-full blur-3xl animate-float-delayed" />
+        <div className="absolute bottom-[10%] left-[10%] w-48 h-48 bg-rose-950/15 rounded-full blur-3xl animate-float-slow" />
       </div>
 
       <ToastContainer />
 
       <Card className="relative w-full max-w-md rounded-3xl animate-fade-in-up">
-        {/* 카드 상단 글로우 라인 */}
-        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent rounded-full" />
+        {/* 카드 상단 골드 글로우 라인 */}
+        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent rounded-full" />
 
         <CardHeader className="text-center pb-4">
           <div className="inline-block relative mb-1">
-            <div className="absolute inset-0 blur-2xl bg-cyan-500/20 rounded-full scale-150" />
-            <h1 className="relative text-4xl sm:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400 bg-clip-text text-transparent leading-tight">
+            <div className="absolute inset-0 blur-2xl bg-red-800/25 rounded-full scale-150" />
+            <h1 className="relative text-4xl sm:text-5xl font-bold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent leading-tight text-glow-gold">
               🍷 집들이 미스터리
             </h1>
           </div>
-          <CardDescription className="text-slate-400 text-sm font-medium tracking-wider uppercase mt-2">
+          <CardDescription className="text-stone-400 text-sm font-medium tracking-wider uppercase mt-2">
             깨진 와인병의 비밀
           </CardDescription>
           <Separator glow className="mt-4" />
@@ -149,11 +149,11 @@ export default function Home() {
 
         <CardContent className="space-y-4">
           {/* 게임 안내 */}
-          <div className="rounded-2xl p-4 border border-cyan-500/20 bg-gradient-to-br from-cyan-500/8 to-blue-500/5">
-            <p className="text-cyan-400 font-semibold text-sm mb-3 text-center flex items-center justify-center gap-1.5">
+          <div className="rounded-2xl p-4 border border-amber-600/20 bg-gradient-to-br from-amber-900/10 to-red-900/8">
+            <p className="text-amber-400 font-semibold text-sm mb-3 text-center flex items-center justify-center gap-1.5">
               <span>📱</span> 게임 방법
             </p>
-            <ol className="text-slate-300 text-xs space-y-2">
+            <ol className="text-stone-300 text-xs space-y-2">
               {[
                 '"게임 생성" 버튼을 누르세요',
                 '생성된 링크를 다른 플레이어들에게 공유하세요',
@@ -161,7 +161,7 @@ export default function Home() {
                 '6명이 모두 참여하면 게임이 시작됩니다',
               ].map((step, i) => (
                 <li key={i} className="flex items-start gap-2.5">
-                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 text-[10px] flex items-center justify-center font-bold mt-0.5">
+                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] flex items-center justify-center font-bold mt-0.5">
                     {i + 1}
                   </span>
                   <span>{step}</span>
@@ -174,7 +174,7 @@ export default function Home() {
           <Button
             variant="gradient"
             size="xl"
-            className="w-full glow-cyan"
+            className="w-full glow-gold"
             onClick={handleCreate}
             disabled={isLoading}
           >
@@ -200,13 +200,13 @@ export default function Home() {
           <Button
             variant="ghost"
             size="sm"
-            className="w-full text-slate-500 hover:text-red-400 hover:bg-red-900/10"
+            className="w-full text-stone-500 hover:text-red-400 hover:bg-red-900/10"
             onClick={handleReset}
           >
             🔄 게임 초기화
           </Button>
 
-          <p className="text-slate-600 text-xs text-center">
+          <p className="text-stone-600 text-xs text-center">
             정확히 6명의 플레이어가 필요합니다
           </p>
         </CardContent>
@@ -215,9 +215,9 @@ export default function Home() {
       {/* 활성 게임 목록 */}
       {activeRooms.length > 0 && (
         <Card className="relative w-full max-w-md mt-5 rounded-3xl animate-fade-in-up">
-          <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent rounded-full" />
+          <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent rounded-full" />
           <CardHeader className="pb-3">
-            <CardTitle className="text-center flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+            <CardTitle className="text-center flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
               활성 게임
             </CardTitle>
@@ -226,17 +226,17 @@ export default function Home() {
             {activeRooms.map((room) => (
               <div
                 key={room.gameId}
-                className="glass rounded-2xl p-4 border border-slate-700/40 hover:border-cyan-500/30 transition-all"
+                className="glass rounded-2xl p-4 border border-stone-700/40 hover:border-amber-500/30 transition-all"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-slate-200 font-semibold text-sm mb-0.5">
+                    <p className="text-stone-200 font-semibold text-sm mb-0.5">
                       방{" "}
-                      <span className="text-cyan-400 font-mono text-xs bg-cyan-500/10 px-1.5 py-0.5 rounded">
+                      <span className="text-amber-400 font-mono text-xs bg-amber-500/10 px-1.5 py-0.5 rounded">
                         {room.gameId.split("-")[1]}
                       </span>
                     </p>
-                    <p className="text-slate-400 text-xs">{room.joinedCount}/{room.maxPlayers}명 참여</p>
+                    <p className="text-stone-400 text-xs">{room.joinedCount}/{room.maxPlayers}명 참여</p>
                   </div>
                   <div>
                     {room.isStarted ? (
@@ -252,7 +252,7 @@ export default function Home() {
                 {room.players.length > 0 && (
                   <div className="mb-3 flex flex-wrap gap-1">
                     {room.players.map((name, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-slate-300 bg-slate-800/60">
+                      <Badge key={idx} variant="secondary" className="text-stone-300 bg-stone-800/60">
                         {name}
                       </Badge>
                     ))}
@@ -317,7 +317,7 @@ export default function Home() {
       {!loadingRooms && activeRooms.length === 0 && (
         <Card variant="glass" className="w-full max-w-md mt-5 rounded-2xl">
           <CardContent className="py-4 text-center">
-            <p className="text-slate-500 text-sm">현재 활성 게임이 없습니다. 새 게임을 생성해주세요.</p>
+            <p className="text-stone-500 text-sm">현재 활성 게임이 없습니다. 새 게임을 생성해주세요.</p>
           </CardContent>
         </Card>
       )}

@@ -18,20 +18,20 @@ import { cn } from "@/lib/utils";
 
 function LoadingScreen() {
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 flex items-center justify-center overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/60 to-stone-950 flex items-center justify-center overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-cyan-500/8 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-blue-500/8 rounded-full blur-3xl animate-float-delayed" />
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-red-900/12 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-amber-900/10 rounded-full blur-3xl animate-float-delayed" />
       </div>
       <div className="relative text-center animate-fade-in-up">
         <div className="flex justify-center mb-5">
           <div className="relative">
-            <div className="absolute inset-0 blur-xl bg-cyan-500/20 scale-150" />
+            <div className="absolute inset-0 blur-xl bg-amber-600/20 scale-150" />
             <div className="relative spinner" />
           </div>
         </div>
-        <div className="text-slate-200 text-lg font-medium mb-2">게임을 불러오는 중...</div>
-        <div className="text-slate-500 text-sm">잠시만 기다려주세요</div>
+        <div className="text-stone-200 text-lg font-medium mb-2">게임을 불러오는 중...</div>
+        <div className="text-stone-500 text-sm">잠시만 기다려주세요</div>
       </div>
     </div>
   );
@@ -68,24 +68,24 @@ function PhaseTimer({ phaseEndTime, phase }: { phaseEndTime?: number; phase: str
   const barColor = isUrgent
     ? "bg-gradient-to-r from-red-500 to-rose-500"
     : isWarning
-    ? "bg-gradient-to-r from-amber-500 to-orange-500"
-    : "bg-gradient-to-r from-cyan-500 to-blue-500";
+    ? "bg-gradient-to-r from-orange-500 to-red-500"
+    : "bg-gradient-to-r from-amber-500 to-yellow-500";
 
-  const textColor = isUrgent ? "text-red-400" : isWarning ? "text-amber-400" : "text-cyan-400";
+  const textColor = isUrgent ? "text-red-400" : isWarning ? "text-orange-400" : "text-amber-400";
 
   const mins = Math.floor(timeLeft / 60);
   const secs = timeLeft % 60;
   const timeStr = mins > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${secs}초`;
 
   return (
-    <div className={`mb-4 p-3 rounded-xl glass border ${isUrgent ? "border-red-500/40 bg-red-500/10" : isWarning ? "border-amber-500/40 bg-amber-500/10" : "border-slate-700/50"} ${isUrgent ? "animate-pulse" : ""}`}>
+    <div className={`mb-4 p-3 rounded-xl glass border ${isUrgent ? "border-red-500/40 bg-red-500/10" : isWarning ? "border-orange-500/40 bg-orange-500/10" : "border-amber-700/40"} ${isUrgent ? "animate-pulse" : ""}`}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-slate-400 text-xs font-medium">⏱ 제한 시간</span>
+        <span className="text-stone-400 text-xs font-medium">⏱ 제한 시간</span>
         <span className={`font-bold text-base tabular-nums ${textColor}`}>
           {timeLeft === 0 ? "시간 초과!" : timeStr}
         </span>
       </div>
-      <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+      <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${barColor}`}
           style={{ width: `${pct}%` }}
@@ -310,17 +310,17 @@ function GamePageContent() {
 
   if (!gameState) {
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+      <div className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/60 to-stone-950 flex items-center justify-center p-3 sm:p-4 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/3 left-1/4 w-56 h-56 bg-red-500/6 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-slate-500/6 rounded-full blur-3xl animate-float-delayed" />
+          <div className="absolute top-1/3 left-1/4 w-56 h-56 bg-red-900/12 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-stone-700/8 rounded-full blur-3xl animate-float-delayed" />
         </div>
         <Card className="relative text-center max-w-md animate-fade-in-up rounded-3xl">
           <CardContent className="pt-8 pb-8">
             <div className="text-5xl mb-5">🔍</div>
             <div className="text-red-400 text-xl font-bold mb-3">게임을 찾을 수 없습니다</div>
-            <div className="text-slate-400 text-sm mb-6 leading-relaxed">게임이 생성되지 않았거나 초기화되었습니다.</div>
-            <Button variant="gradient" size="lg" className="glow-cyan" onClick={() => router.push("/")}>
+            <div className="text-stone-400 text-sm mb-6 leading-relaxed">게임이 생성되지 않았거나 초기화되었습니다.</div>
+            <Button variant="gradient" size="lg" className="glow-gold" onClick={() => router.push("/")}>
               홈으로 돌아가기
             </Button>
           </CardContent>
@@ -365,10 +365,10 @@ function GamePageContent() {
     const allJoined = joinedPlayers.length === 6;
 
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 overflow-hidden">
+      <div className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/60 to-stone-950 p-3 sm:p-4 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-5%] w-72 h-72 bg-cyan-500/6 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-[10%] right-[-5%] w-56 h-56 bg-blue-500/6 rounded-full blur-3xl animate-float-delayed" />
+          <div className="absolute top-[-10%] left-[-5%] w-72 h-72 bg-red-900/12 rounded-full blur-3xl animate-float" />
+          <div className="absolute bottom-[10%] right-[-5%] w-56 h-56 bg-amber-900/8 rounded-full blur-3xl animate-float-delayed" />
         </div>
         <ToastContainer />
         <div className="relative max-w-2xl mx-auto pb-28">
@@ -377,29 +377,29 @@ function GamePageContent() {
           </Button>
 
           <div className="text-center mb-6">
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
               🍷 집들이 미스터리
             </h1>
             <Separator glow className="mt-3" />
           </div>
 
-          <Card className="border-cyan-500/20 bg-gradient-to-br from-cyan-500/8 to-blue-500/5 mb-5 animate-fade-in-up">
+          <Card className="border-amber-600/20 bg-gradient-to-br from-amber-900/10 to-red-900/8 mb-5 animate-fade-in-up">
             <CardContent className="pt-5 text-center">
-              <p className="text-cyan-400 font-bold mb-2">👤 플레이어 참여</p>
+              <p className="text-amber-400 font-bold mb-2">👤 플레이어 참여</p>
               {isHost && (
                 <p className="text-amber-400 mb-2 text-sm font-semibold">
                   🎮 호스트: 먼저 당신의 이름을 입력하세요
                 </p>
               )}
-              <p className="text-slate-300 text-sm">
-                <span className="text-cyan-400 font-semibold">당신의 이름</span>을 입력하세요
+              <p className="text-stone-300 text-sm">
+                <span className="text-amber-400 font-semibold">당신의 이름</span>을 입력하세요
               </p>
             </CardContent>
           </Card>
 
           <div className="text-center mb-5">
-            <p className="text-slate-400 text-sm">
-              참여 완료: <span className="text-cyan-400 font-bold">{joinedPlayers.length}</span> / 6
+            <p className="text-stone-400 text-sm">
+              참여 완료: <span className="text-amber-400 font-bold">{joinedPlayers.length}</span> / 6
             </p>
             {allJoined && (
               <p className="text-green-400 text-sm font-semibold mt-2 animate-pulse">
@@ -428,7 +428,7 @@ function GamePageContent() {
 
           {/* 참여자 목록 */}
           <div className="space-y-2">
-            <p className="text-slate-400 text-sm text-center mb-3">
+            <p className="text-stone-400 text-sm text-center mb-3">
               참여한 플레이어 ({joinedPlayers.length}/6):
             </p>
             {joinedPlayers.length > 0 ? (
@@ -441,7 +441,7 @@ function GamePageContent() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Badge variant="info" className="text-[10px]">#{index + 1}</Badge>
-                      <span className="text-slate-100 font-medium">{player.name}</span>
+                      <span className="text-stone-100 font-medium">{player.name}</span>
                       {index === 0 && (
                         <Badge variant="warning">호스트</Badge>
                       )}
@@ -451,17 +451,17 @@ function GamePageContent() {
                 </Card>
               ))
             ) : (
-              <p className="text-slate-500 text-sm text-center">아직 참여한 플레이어가 없습니다</p>
+              <p className="text-stone-500 text-sm text-center">아직 참여한 플레이어가 없습니다</p>
             )}
           </div>
 
           {/* 호스트 링크 공유 */}
           {isHost && joinedPlayers.length > 0 && (
-            <Card variant="glass" className="mt-4 border-cyan-500/30 bg-cyan-500/10">
+            <Card variant="glass" className="mt-4 border-amber-500/30 bg-amber-500/10">
               <CardContent className="pt-4">
-                <p className="text-cyan-400 text-sm text-center mb-2 font-semibold">📋 게임 링크 공유</p>
-                <div className="bg-slate-900/50 rounded-lg p-2 mb-2 border border-slate-700/50">
-                  <p className="text-slate-300 text-xs font-mono break-all text-center">
+                <p className="text-amber-400 text-sm text-center mb-2 font-semibold">📋 게임 링크 공유</p>
+                <div className="bg-stone-900/50 rounded-lg p-2 mb-2 border border-stone-700/50">
+                  <p className="text-stone-300 text-xs font-mono break-all text-center">
                     {typeof window !== "undefined" ? `${window.location.origin}/game?gameId=${gameId}` : ""}
                   </p>
                 </div>
@@ -483,7 +483,7 @@ function GamePageContent() {
     const winnerOrb1 = gameState.winner === "citizens" ? "bg-green-500/10" : gameState.winner === "mafia" ? "bg-red-500/10" : "bg-amber-500/10";
     const winnerOrb2 = gameState.winner === "citizens" ? "bg-emerald-500/8" : gameState.winner === "mafia" ? "bg-rose-500/8" : "bg-orange-500/8";
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 overflow-hidden">
+      <div className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/50 to-stone-950 p-3 sm:p-4 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className={`absolute top-0 left-0 right-0 h-64 ${winnerGlow} blur-3xl`} />
           <div className={`absolute top-1/4 right-[-5%] w-64 h-64 ${winnerOrb1} rounded-full blur-3xl animate-float`} />
@@ -517,7 +517,7 @@ function GamePageContent() {
               <Separator glow className="my-4" />
               <div className="space-y-2">
                 {gameState.history.map((event, index) => (
-                  <p key={index} className="text-slate-300 text-sm leading-relaxed border-l-2 border-slate-700/50 pl-3">
+                  <p key={index} className="text-stone-300 text-sm leading-relaxed border-l-2 border-stone-700/50 pl-3">
                     {event}
                   </p>
                 ))}
@@ -534,7 +534,7 @@ function GamePageContent() {
               />
             ))}
           </div>
-          <Button variant="gradient" size="xl" className="w-full mt-6 glow-cyan" onClick={() => router.push("/")}>
+          <Button variant="gradient" size="xl" className="w-full mt-6 glow-gold" onClick={() => router.push("/")}>
             새 게임 시작
           </Button>
         </div>
@@ -592,13 +592,13 @@ function GamePageContent() {
                   <div className="text-center">
                     <div className="mb-4 p-4 glass border-green-500/30 bg-green-500/10 rounded-xl">
                       <p className="text-green-400 font-bold text-lg mb-2">✓ 액션 완료</p>
-                      <p className="text-slate-300 text-sm">다른 플레이어들이 준비할 때까지 기다려주세요</p>
+                      <p className="text-stone-300 text-sm">다른 플레이어들이 준비할 때까지 기다려주세요</p>
                     </div>
                     {currentPlayer.role === "police" &&
                      gameState.nightActions?.investigate?.playerId === currentPlayerId && (
-                      <Card variant="glass" className="mt-4 border-cyan-500/30">
+                      <Card variant="glass" className="mt-4 border-amber-500/30">
                         <CardContent className="pt-4">
-                          <p className="font-bold text-slate-100">
+                          <p className="font-bold text-stone-100">
                             {gameState.nightActions.investigate.result ? "범인입니다! 🍷" : "범인이 아닙니다."}
                           </p>
                         </CardContent>
@@ -622,8 +622,8 @@ function GamePageContent() {
                             className={cn(
                               "w-full p-4 rounded-xl text-left transition-all active:scale-[0.97]",
                               selectedPlayerId === player.id
-                                ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/25"
-                                : "glass-light text-slate-100 hover:bg-slate-800/50 border border-slate-700/50"
+                                ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-900 font-bold shadow-lg shadow-amber-700/30"
+                                : "glass-light text-stone-100 hover:bg-stone-800/50 border border-stone-700/50"
                             )}
                           >
                             {player.name}
@@ -654,13 +654,13 @@ function GamePageContent() {
                 <div className="text-4xl mb-3">
                   {currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen" ? "😴" : "⏳"}
                 </div>
-                <p className="text-slate-200 font-medium">
+                <p className="text-stone-200 font-medium">
                   {currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen"
                     ? "🌙 밤입니다. 푹 주무세요..."
                     : "다른 플레이어의 차례를 기다리는 중..."}
                 </p>
                 {(currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen") && (
-                  <p className="text-slate-500 text-xs mt-2">다른 플레이어들이 행동을 완료할 때까지 화면을 보지 마세요</p>
+                  <p className="text-stone-500 text-xs mt-2">다른 플레이어들이 행동을 완료할 때까지 화면을 보지 마세요</p>
                 )}
               </CardContent>
             </Card>
@@ -668,11 +668,11 @@ function GamePageContent() {
 
           {/* 준비 상태 */}
           {needsActionPlayers.length > 0 && (
-            <Card variant="glass" className="border-slate-700/50 mb-4">
+            <Card variant="glass" className="border-stone-700/50 mb-4">
               <CardContent className="pt-4">
-                <p className="text-slate-300 text-center text-sm mb-3">
+                <p className="text-stone-300 text-center text-sm mb-3">
                   준비 완료:{" "}
-                  <span className="text-cyan-400 font-bold">{readyCount}</span>{" "}
+                  <span className="text-amber-400 font-bold">{readyCount}</span>{" "}
                   / {needsActionPlayers.length}
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center">
@@ -730,7 +730,7 @@ function GamePageContent() {
             </CardHeader>
             <CardContent className="pt-0 space-y-2.5">
               {gameState.history.slice(-3).map((event, index) => (
-                <p key={index} className="text-slate-300 text-sm leading-relaxed border-l-2 border-amber-500/30 pl-3">
+                <p key={index} className="text-stone-300 text-sm leading-relaxed border-l-2 border-amber-500/30 pl-3">
                   {event}
                 </p>
               ))}
@@ -785,10 +785,10 @@ function GamePageContent() {
           <Card className="border-pink-500/20 mb-4">
             <CardContent className="pt-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-slate-300 text-sm font-medium">투표 현황</span>
+                <span className="text-stone-300 text-sm font-medium">투표 현황</span>
                 <Badge variant="purple">{votedCount} / {aliveCount}명</Badge>
               </div>
-              <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
                   style={{ width: `${aliveCount > 0 ? (votedCount / aliveCount) * 100 : 0}%` }}
@@ -804,7 +804,7 @@ function GamePageContent() {
           />
 
           <div className="mt-4 space-y-2">
-            <p className="text-slate-500 text-xs text-center mb-2">생존자 투표 현황</p>
+            <p className="text-stone-500 text-xs text-center mb-2">생존자 투표 현황</p>
             {gameState.players
               .filter((p) => p.isAlive)
               .map((player) => (
@@ -813,11 +813,11 @@ function GamePageContent() {
                   variant="glass"
                   className={cn(
                     "transition-all",
-                    player.votedFor ? "border-green-500/20 bg-green-500/5" : "border-slate-700/40"
+                    player.votedFor ? "border-green-500/20 bg-green-500/5" : "border-stone-700/40"
                   )}
                 >
                   <div className="flex justify-between items-center p-3.5">
-                    <span className="text-slate-200 font-medium text-sm">{player.name}</span>
+                    <span className="text-stone-200 font-medium text-sm">{player.name}</span>
                     <div className="flex items-center gap-2">
                       {player.votedFor ? (
                         <Badge variant="success">✓ 투표 완료</Badge>
@@ -848,10 +848,10 @@ function GamePageContent() {
   const gameStarted = gameState.status === "playing" && gameState.players[0]?.role !== null;
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 overflow-hidden">
+    <div className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/60 to-stone-950 p-3 sm:p-4 overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-5%] right-[10%] w-64 h-64 bg-cyan-500/6 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-[10%] left-[5%] w-56 h-56 bg-blue-500/6 rounded-full blur-3xl animate-float-delayed" />
+        <div className="absolute top-[-5%] right-[10%] w-64 h-64 bg-red-900/12 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-[10%] left-[5%] w-56 h-56 bg-amber-900/8 rounded-full blur-3xl animate-float-delayed" />
       </div>
       <ToastContainer />
       <div className="relative max-w-2xl mx-auto pb-28">
@@ -866,9 +866,9 @@ function GamePageContent() {
               <p className="text-amber-400 font-medium mb-1.5">
                 ⏳ 모든 플레이어가 참여할 때까지 기다리는 중...
               </p>
-              <p className="text-slate-300 text-sm">
+              <p className="text-stone-300 text-sm">
                 참여 완료:{" "}
-                <span className="text-cyan-400 font-bold">{joinedPlayers.length}</span> / 6
+                <span className="text-amber-400 font-bold">{joinedPlayers.length}</span> / 6
               </p>
             </CardContent>
           </Card>
@@ -878,7 +878,7 @@ function GamePageContent() {
           <Card variant="glass" className="border-green-500/30 bg-green-500/10 mb-4 animate-fade-in-up">
             <CardContent className="pt-5 text-center">
               <p className="text-green-400 font-medium mb-1">✨ 모든 플레이어가 참여했습니다!</p>
-              <p className="text-slate-300 text-sm">"게임 시작" 버튼을 눌러 역할을 배정하세요</p>
+              <p className="text-stone-300 text-sm">"게임 시작" 버튼을 눌러 역할을 배정하세요</p>
             </CardContent>
           </Card>
         )}
@@ -889,24 +889,24 @@ function GamePageContent() {
               <p className="text-amber-400 font-medium mb-1">
                 ⏳ 모든 플레이어가 준비할 때까지 기다리는 중...
               </p>
-              <p className="text-slate-300 text-sm">
+              <p className="text-stone-300 text-sm">
                 준비 완료:{" "}
-                <span className="text-cyan-400 font-bold">{readyCount}</span>{" "}
+                <span className="text-amber-400 font-bold">{readyCount}</span>{" "}
                 / {gameState.players.length}
               </p>
             </CardContent>
           </Card>
         )}
 
-        <Card className="mb-6 border-slate-700/40">
+        <Card className="mb-6 border-stone-700/40">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-lg bg-cyan-500/20 flex items-center justify-center text-sm">
+              <span className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-sm">
                 {gameStarted ? "🎭" : "👥"}
               </span>
               {gameStarted ? "역할 배정" : "플레이어 목록"}
             </CardTitle>
-            <p className="text-slate-400 text-sm leading-relaxed">
+            <p className="text-stone-400 text-sm leading-relaxed">
               {gameStarted
                 ? "각 플레이어는 자신의 역할을 확인한 후, 폰을 다음 사람에게 넘겨주세요."
                 : "모든 플레이어가 참여하면 게임을 시작할 수 있습니다."}
@@ -921,7 +921,7 @@ function GamePageContent() {
                   isCurrentPlayer={player.id === currentPlayerId}
                 />
                 {player.name === "" && (
-                  <span className="absolute top-2 right-2 text-slate-500 text-xs font-semibold">대기 중...</span>
+                  <span className="absolute top-2 right-2 text-stone-500 text-xs font-semibold">대기 중...</span>
                 )}
                 {player.ready && gameStarted && (
                   <Badge variant="success" className="absolute top-3 right-3">
@@ -937,9 +937,9 @@ function GamePageContent() {
 
         {/* 호스트 링크 공유 */}
         {isHost && !gameStarted && joinedPlayers.length > 0 && (
-          <Card variant="glass" className="mb-4 border-cyan-500/30 bg-cyan-500/10">
+          <Card variant="glass" className="mb-4 border-amber-500/30 bg-amber-500/10">
             <CardContent className="pt-4">
-              <p className="text-cyan-400 text-sm text-center mb-2 font-semibold">📋 게임 링크 공유</p>
+              <p className="text-amber-400 text-sm text-center mb-2 font-semibold">📋 게임 링크 공유</p>
               <Button variant="gradient-green" size="sm" className="w-full" onClick={copyLink}>
                 📋 링크 복사
               </Button>
@@ -968,7 +968,7 @@ function GamePageContent() {
               <Card variant="glass" className="w-full mb-3 border-green-500/30 bg-green-500/10">
                 <CardContent className="py-4 text-center">
                   <p className="text-green-400 font-semibold">✓ 준비 완료했습니다</p>
-                  <p className="text-slate-300 text-sm mt-1">다른 플레이어들이 준비할 때까지 기다려주세요</p>
+                  <p className="text-stone-300 text-sm mt-1">다른 플레이어들이 준비할 때까지 기다려주세요</p>
                 </CardContent>
               </Card>
             )}
