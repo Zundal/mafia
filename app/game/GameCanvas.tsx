@@ -52,10 +52,19 @@ interface Props {
   players: PlayerData[];
   nightMode: boolean;
   demoMode?: boolean;
+  onRoomChange?: (roomName: string) => void;
+}
+
+// ─── 방 감지 헬퍼 ─────────────────────────────────────────────────────────────
+function getRoomName(x: number, z: number): string {
+  for (const room of ROOMS) {
+    if (x >= room.x1 && x <= room.x2 && z >= room.z1 && z <= room.z2) return room.name;
+  }
+  return "복도";
 }
 
 // ─── 컴포넌트 ─────────────────────────────────────────────────────────────────
-export default function GameCanvas({ currentPlayerId, players, nightMode, demoMode }: Props) {
+export default function GameCanvas({ currentPlayerId, players, nightMode, demoMode, onRoomChange }: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -76,6 +85,11 @@ export default function GameCanvas({ currentPlayerId, players, nightMode, demoMo
   const joyBaseRef = useRef<HTMLDivElement | null>(null);
   const joyKnobRef = useRef<HTMLDivElement | null>(null);
   const joyOriginRef = useRef<{ x: number; y: number } | null>(null);
+
+  // 방 변경 콜백 (항상 최신 참조 유지)
+  const currentRoomRef = useRef<string>("");
+  const onRoomChangeRef = useRef(onRoomChange);
+  useEffect(() => { onRoomChangeRef.current = onRoomChange; }, [onRoomChange]);
 
   // 스폰 위치 초기화
   useEffect(() => {
@@ -239,6 +253,13 @@ export default function GameCanvas({ currentPlayerId, players, nightMode, demoMo
           myMesh.position.x = myPosRef.current.x;
           myMesh.position.z = myPosRef.current.z;
         }
+
+        // 방 변경 감지
+        const newRoom = getRoomName(myPosRef.current.x, myPosRef.current.z);
+        if (newRoom !== currentRoomRef.current) {
+          currentRoomRef.current = newRoom;
+          onRoomChangeRef.current?.(newRoom);
+        }
       }
 
       // 다른 플레이어 보간
@@ -294,35 +315,49 @@ export default function GameCanvas({ currentPlayerId, players, nightMode, demoMo
     if (!currentPlayerId) return;
 
     if (demoMode) {
-      // 데모 모드: NPC들이 맵을 배회
+      // 데모 모드: NPC들이 맵을 배회 (개성 있는 속도 + 랜덤 멈춤)
       const npcTargets = new Map<string, { x: number; z: number }>();
+      const npcState = new Map<string, { speed: number; pauseUntil: number }>();
+
       players.forEach((p, idx) => {
         if (p.id === currentPlayerId) return;
         const sp = SPAWNS[idx % SPAWNS.length];
-        npcTargets.set(p.id, { x: sp.x + (Math.random() - 0.5) * 200, z: sp.z + (Math.random() - 0.5) * 150 });
+        npcTargets.set(p.id, {
+          x: sp.x + (Math.random() - 0.5) * 200,
+          z: sp.z + (Math.random() - 0.5) * 150,
+        });
         otherPosRef.current.set(p.id, { x: sp.x, z: sp.z });
+        // 각 NPC마다 다른 이동 속도 (2.2 ~ 4.5 px/tick)
+        npcState.set(p.id, { speed: 2.2 + Math.random() * 2.3, pauseUntil: 0 });
       });
 
       const wander = setInterval(() => {
         players.forEach((p) => {
           if (p.id === currentPlayerId) return;
+          const state = npcState.get(p.id)!;
+          if (Date.now() < state.pauseUntil) return; // 멈춰있는 중
+
           const cur = otherPosRef.current.get(p.id) ?? { x: 400, z: 300 };
           const tgt = npcTargets.get(p.id) ?? { x: 400, z: 300 };
           const dx = tgt.x - cur.x;
           const dz = tgt.z - cur.z;
           const dist = Math.sqrt(dx * dx + dz * dz);
+
           if (dist < 12) {
-            // 새 목표 (랜덤 방으로)
+            // 새 목표 - 랜덤 방으로 이동
             const room = ROOMS[Math.floor(Math.random() * ROOMS.length)];
             npcTargets.set(p.id, {
               x: room.x1 + 20 + Math.random() * (room.x2 - room.x1 - 40),
               z: room.z1 + 20 + Math.random() * (room.z2 - room.z1 - 40),
             });
+            // 40% 확률로 잠시 멈춤 (방에 도착 후 주변 살펴보는 느낌)
+            if (Math.random() < 0.4) {
+              state.pauseUntil = Date.now() + 800 + Math.random() * 3200;
+            }
           } else {
-            const spd = 3.5; // 50ms 간격이므로 픽셀/틱
             otherPosRef.current.set(p.id, {
-              x: Math.max(15, Math.min(MAP_W - 15, cur.x + (dx / dist) * spd)),
-              z: Math.max(15, Math.min(MAP_H - 15, cur.z + (dz / dist) * spd)),
+              x: Math.max(15, Math.min(MAP_W - 15, cur.x + (dx / dist) * state.speed)),
+              z: Math.max(15, Math.min(MAP_H - 15, cur.z + (dz / dist) * state.speed)),
             });
           }
         });

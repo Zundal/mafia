@@ -4,11 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import MusicPlayer from "./components/MusicPlayer";
 import { ToastContainer, toast } from "./components/Toast";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
 interface GameRoom {
   gameId: string;
@@ -38,17 +36,14 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "create", gameId }),
       });
-
       const data = await response.json();
-
       if (response.ok && data.gameId) {
-        setIsLoading(false);
         router.push(`/game?gameId=${gameId}&host=true`);
       } else {
         setIsLoading(false);
         toast(data.error || "게임 생성에 실패했습니다.", "error");
       }
-    } catch (error) {
+    } catch {
       setIsLoading(false);
       toast("게임 생성 중 오류가 발생했습니다.", "error");
     }
@@ -72,20 +67,14 @@ export default function Home() {
   };
 
   const handleJoinRoom = async (gameId: string, playerName: string) => {
-    if (!playerName.trim()) {
-      toast("이름을 입력해주세요.", "warning");
-      return;
-    }
-
+    if (!playerName.trim()) { toast("이름을 입력해주세요.", "warning"); return; }
     try {
       const response = await fetch("/api/game", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "join", playerName: playerName.trim() }),
       });
-
       const data = await response.json();
-
       if (response.ok && data.joinedPlayerId) {
         localStorage.setItem(`player-${gameId}`, data.joinedPlayerId);
         setJoiningRoomId(null);
@@ -120,215 +109,266 @@ export default function Home() {
   };
 
   return (
-    <main className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/60 to-stone-950 p-3 sm:p-4 flex flex-col items-center justify-center pb-28 overflow-hidden">
-      {/* 배경 앰비언트 오브 */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-10%] left-[-5%] w-72 h-72 bg-red-900/15 rounded-full blur-3xl animate-float" />
-        <div className="absolute top-[30%] right-[-10%] w-64 h-64 bg-amber-900/10 rounded-full blur-3xl animate-float-delayed" />
-        <div className="absolute bottom-[10%] left-[10%] w-48 h-48 bg-rose-950/15 rounded-full blur-3xl animate-float-slow" />
+    <main
+      className="relative min-h-screen flex flex-col items-center justify-center p-4 pb-32 overflow-hidden"
+      style={{ background: '#0c0704' }}
+    >
+      {/* 따뜻한 중심 글로우 */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse 90% 55% at 50% 38%, rgba(110,35,15,0.22) 0%, transparent 70%)',
+          }}
+        />
+        <div
+          className="absolute top-0 left-0 right-0 h-px"
+          style={{ background: 'linear-gradient(to right, transparent, rgba(160,90,40,0.35), transparent)' }}
+        />
+        <div className="absolute top-[15%] left-[20%] w-80 h-80 bg-red-950/20 rounded-full blur-[100px] animate-float" />
+        <div className="absolute bottom-[10%] right-[15%] w-64 h-64 bg-amber-950/15 rounded-full blur-[80px] animate-float-delayed" />
       </div>
 
       <ToastContainer />
 
-      <Card className="relative w-full max-w-md rounded-3xl animate-fade-in-up">
-        {/* 카드 상단 골드 글로우 라인 */}
-        <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-500/60 to-transparent rounded-full" />
+      {/* ── 타이틀 ────────────────────────────────────────────────── */}
+      <div className="relative text-center mb-10 animate-fade-in-up">
+        <div
+          className="mb-4 select-none"
+          style={{ fontSize: 64, filter: 'drop-shadow(0 0 28px rgba(180,50,20,0.5))' }}
+        >
+          🍷
+        </div>
+        <h1
+          className="font-bold tracking-tight mb-2 leading-none"
+          style={{
+            fontSize: 'clamp(2rem, 8vw, 3rem)',
+            color: '#e4ccaa',
+            textShadow: '0 2px 24px rgba(180,110,40,0.35), 0 0 80px rgba(140,70,20,0.15)',
+          }}
+        >
+          집들이 미스터리
+        </h1>
+        <p
+          className="text-xs font-medium tracking-[0.35em] uppercase"
+          style={{ color: 'rgba(160,110,60,0.7)' }}
+        >
+          깨진 와인병의 비밀
+        </p>
+        {/* 장식 구분선 */}
+        <div className="flex items-center justify-center gap-3 mt-4">
+          <div className="h-px w-14" style={{ background: 'linear-gradient(to right, transparent, rgba(140,90,45,0.45))' }} />
+          <div className="w-1.5 h-1.5 rounded-full" style={{ background: 'rgba(160,100,50,0.5)' }} />
+          <div className="h-px w-14" style={{ background: 'linear-gradient(to left, transparent, rgba(140,90,45,0.45))' }} />
+        </div>
+      </div>
 
-        <CardHeader className="text-center pb-4">
-          <div className="inline-block relative mb-1">
-            <div className="absolute inset-0 blur-2xl bg-red-800/25 rounded-full scale-150" />
-            <h1 className="relative text-4xl sm:text-5xl font-bold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent leading-tight text-glow-gold">
-              🍷 집들이 미스터리
-            </h1>
+      {/* ── 메인 액션 ─────────────────────────────────────────────── */}
+      <div
+        className="relative w-full max-w-xs space-y-3 animate-fade-in-up"
+        style={{ animationDelay: '0.08s' }}
+      >
+        {/* 게임 생성 — 주 CTA */}
+        <button
+          onClick={handleCreate}
+          disabled={isLoading}
+          className="w-full relative overflow-hidden rounded-2xl text-left group active:scale-[0.98] transition-transform disabled:opacity-60"
+          style={{
+            background: 'linear-gradient(150deg, #5c1212 0%, #8c1c1c 45%, #621010 100%)',
+            border: '1px solid rgba(200,70,50,0.22)',
+            boxShadow: '0 4px 28px rgba(90,15,10,0.65), inset 0 1px 0 rgba(255,180,120,0.07)',
+          }}
+        >
+          <div
+            className="absolute top-0 left-0 right-0 h-px"
+            style={{ background: 'linear-gradient(to right, transparent, rgba(255,160,100,0.2), transparent)' }}
+          />
+          <div className="relative px-5 py-4 flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2.5 mb-1">
+                {isLoading
+                  ? <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
+                  : <span className="text-xl">🎮</span>
+                }
+                <span className="font-bold text-base" style={{ color: '#f0d8b8' }}>
+                  {isLoading ? '생성 중...' : '새 게임 시작'}
+                </span>
+              </div>
+              <p className="text-xs" style={{ color: 'rgba(190,130,80,0.65)' }}>
+                6명 · 방 생성 후 링크를 공유하세요
+              </p>
+            </div>
+            <span
+              className="text-lg transition-transform group-hover:translate-x-0.5"
+              style={{ color: 'rgba(190,120,70,0.55)' }}
+            >→</span>
           </div>
-          <CardDescription className="text-stone-400 text-sm font-medium tracking-wider uppercase mt-2">
-            깨진 와인병의 비밀
-          </CardDescription>
-          <Separator glow className="mt-4" />
-        </CardHeader>
+        </button>
 
-        <CardContent className="space-y-4">
-          {/* 게임 안내 */}
-          <div className="rounded-2xl p-4 border border-amber-600/20 bg-gradient-to-br from-amber-900/10 to-red-900/8">
-            <p className="text-amber-400 font-semibold text-sm mb-3 text-center flex items-center justify-center gap-1.5">
-              <span>📱</span> 게임 방법
-            </p>
-            <ol className="text-stone-300 text-xs space-y-2">
-              {[
-                '"게임 생성" 버튼을 누르세요',
-                '생성된 링크를 다른 플레이어들에게 공유하세요',
-                '각 플레이어는 자신의 이름을 입력하세요',
-                '6명이 모두 참여하면 게임이 시작됩니다',
-              ].map((step, i) => (
-                <li key={i} className="flex items-start gap-2.5">
-                  <span className="flex-shrink-0 w-4 h-4 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] flex items-center justify-center font-bold mt-0.5">
-                    {i + 1}
-                  </span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
+        {/* 보조 액션 2열 */}
+        <div className="grid grid-cols-2 gap-2.5">
+          {[
+            { icon: '🚶', label: '혼자 해보기', sub: '맵 탐험', path: '/demo' },
+            { icon: '📖', label: '스토리', sub: '규칙 & 배경', path: '/story' },
+          ].map(({ icon, label, sub, path }) => (
+            <button
+              key={path}
+              onClick={() => router.push(path)}
+              className="relative rounded-2xl p-4 text-left group active:scale-[0.97] transition-all"
+              style={{
+                background: 'rgba(18,10,6,0.85)',
+                border: '1px solid rgba(120,75,40,0.2)',
+                boxShadow: 'inset 0 1px 0 rgba(255,210,140,0.03)',
+              }}
+            >
+              <div className="text-2xl mb-2 transition-transform group-hover:-translate-y-0.5">{icon}</div>
+              <p className="font-semibold text-sm mb-0.5" style={{ color: '#d0b590' }}>{label}</p>
+              <p className="text-xs" style={{ color: 'rgba(140,95,55,0.65)' }}>{sub}</p>
+            </button>
+          ))}
+        </div>
 
-          {/* 게임 생성 버튼 */}
-          <Button
-            variant="gradient"
-            size="xl"
-            className="w-full glow-gold"
-            onClick={handleCreate}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <div className="spinner" style={{ width: 20, height: 20, borderWidth: 2 }} />
-                게임 생성 중...
-              </>
-            ) : (
-              "🎮 게임 생성"
-            )}
-          </Button>
-
-          <Button
-            variant="glass"
-            size="default"
-            className="w-full h-11"
-            onClick={() => router.push("/demo")}
-          >
-            🚶 혼자 해보기
-          </Button>
-
-          <Button
-            variant="glass"
-            size="default"
-            className="w-full h-11"
-            onClick={() => router.push("/story")}
-          >
-            📖 스토리 보기
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full text-stone-500 hover:text-red-400 hover:bg-red-900/10"
+        {/* 하단 유틸 */}
+        <div className="flex items-center justify-between pt-1">
+          <p className="text-xs" style={{ color: 'rgba(90,60,35,0.7)' }}>정확히 6명이 필요합니다</p>
+          <button
             onClick={handleReset}
+            className="text-xs transition-colors"
+            style={{ color: 'rgba(90,60,35,0.6)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(160,100,55,0.8)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(90,60,35,0.6)')}
           >
-            🔄 게임 초기화
-          </Button>
+            초기화
+          </button>
+        </div>
+      </div>
 
-          <p className="text-stone-600 text-xs text-center">
-            정확히 6명의 플레이어가 필요합니다
-          </p>
-        </CardContent>
-      </Card>
-
-      {/* 활성 게임 목록 */}
+      {/* ── 활성 게임 목록 ─────────────────────────────────────────── */}
       {activeRooms.length > 0 && (
-        <Card className="relative w-full max-w-md mt-5 rounded-3xl animate-fade-in-up">
-          <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent rounded-full" />
-          <CardHeader className="pb-3">
-            <CardTitle className="text-center flex items-center justify-center gap-2 bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
-              활성 게임
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0 space-y-3">
+        <div
+          className="relative w-full max-w-xs mt-8 animate-fade-in-up"
+          style={{ animationDelay: '0.15s' }}
+        >
+          {/* 헤더 */}
+          <div className="flex items-center gap-2 mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'rgba(150,100,55,0.8)' }}>
+              진행 중인 게임
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
             {activeRooms.map((room) => (
               <div
                 key={room.gameId}
-                className="glass rounded-2xl p-4 border border-stone-700/40 hover:border-amber-500/30 transition-all"
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: 'rgba(16,8,5,0.88)',
+                  border: '1px solid rgba(120,75,40,0.2)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                }}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <p className="text-stone-200 font-semibold text-sm mb-0.5">
-                      방{" "}
-                      <span className="text-amber-400 font-mono text-xs bg-amber-500/10 px-1.5 py-0.5 rounded">
-                        {room.gameId.split("-")[1]}
+                <div className="px-4 py-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <span className="text-sm font-semibold" style={{ color: '#d8c0a0' }}>
+                        방{' '}
+                        <span
+                          className="font-mono text-xs px-1.5 py-0.5 rounded"
+                          style={{ background: 'rgba(160,100,50,0.12)', color: '#c8a070' }}
+                        >
+                          {room.gameId.split('-')[1]}
+                        </span>
                       </span>
-                    </p>
-                    <p className="text-stone-400 text-xs">{room.joinedCount}/{room.maxPlayers}명 참여</p>
-                  </div>
-                  <div>
-                    {room.isStarted ? (
-                      <Badge variant="success">● 진행 중</Badge>
-                    ) : room.isFull ? (
-                      <Badge variant="warning">⏳ 대기 중</Badge>
-                    ) : (
-                      <Badge variant="info">✦ 참여 가능</Badge>
-                    )}
-                  </div>
-                </div>
-
-                {room.players.length > 0 && (
-                  <div className="mb-3 flex flex-wrap gap-1">
-                    {room.players.map((name, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-stone-300 bg-stone-800/60">
-                        {name}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-
-                {joiningRoomId === room.gameId ? (
-                  <div className="space-y-2">
-                    <Input
-                      value={joinPlayerName}
-                      onChange={(e) => setJoinPlayerName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && joinPlayerName.trim()) {
-                          handleJoinRoom(room.gameId, joinPlayerName.trim());
-                        }
-                      }}
-                      placeholder="당신의 이름을 입력하세요"
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        variant="gradient"
-                        size="sm"
-                        className="flex-1"
-                        onClick={() => handleJoinRoom(room.gameId, joinPlayerName.trim())}
-                        disabled={!joinPlayerName.trim()}
-                      >
-                        참여하기
-                      </Button>
-                      <Button
-                        variant="glass"
-                        size="sm"
-                        onClick={() => { setJoiningRoomId(null); setJoinPlayerName(""); }}
-                      >
-                        취소
-                      </Button>
+                      <p className="text-xs mt-0.5" style={{ color: 'rgba(130,90,50,0.7)' }}>
+                        {room.joinedCount}/{room.maxPlayers}명 참여
+                      </p>
                     </div>
+                    <Badge
+                      variant={room.isStarted ? 'success' : room.isFull ? 'warning' : 'info'}
+                    >
+                      {room.isStarted ? '● 진행 중' : room.isFull ? '⏳ 대기' : '✦ 참여 가능'}
+                    </Badge>
                   </div>
-                ) : (
-                  <Button
-                    variant={room.isFull && !room.isStarted ? "secondary" : "gradient"}
-                    size="sm"
-                    className="w-full"
-                    onClick={() => {
-                      if (room.isStarted) {
-                        router.push(`/game?gameId=${room.gameId}`);
-                      } else {
-                        setJoiningRoomId(room.gameId);
-                      }
-                    }}
-                    disabled={room.isFull && !room.isStarted}
-                  >
-                    {room.isStarted ? "게임 참여" : room.isFull ? "대기 중..." : "참여하기"}
-                  </Button>
-                )}
+
+                  {room.players.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2.5">
+                      {room.players.map((name, idx) => (
+                        <span
+                          key={idx}
+                          className="text-xs px-2 py-0.5 rounded-full"
+                          style={{ background: 'rgba(120,75,40,0.15)', color: 'rgba(180,130,80,0.8)', border: '1px solid rgba(120,75,40,0.15)' }}
+                        >
+                          {name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {joiningRoomId === room.gameId ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={joinPlayerName}
+                        onChange={(e) => setJoinPlayerName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' && joinPlayerName.trim()) handleJoinRoom(room.gameId, joinPlayerName.trim()); }}
+                        placeholder="이름을 입력하세요"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleJoinRoom(room.gameId, joinPlayerName.trim())}
+                          disabled={!joinPlayerName.trim()}
+                          className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+                          style={{
+                            background: 'linear-gradient(to right, #5c1212, #8c1c1c)',
+                            color: '#f0d8b8',
+                          }}
+                        >
+                          참여하기
+                        </button>
+                        <button
+                          onClick={() => { setJoiningRoomId(null); setJoinPlayerName(''); }}
+                          className="px-4 py-2 rounded-xl text-sm transition-all"
+                          style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(180,140,100,0.7)', border: '1px solid rgba(120,80,45,0.2)' }}
+                        >
+                          취소
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        if (room.isStarted) router.push(`/game?gameId=${room.gameId}`);
+                        else setJoiningRoomId(room.gameId);
+                      }}
+                      disabled={room.isFull && !room.isStarted}
+                      className={cn(
+                        'w-full py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-40',
+                      )}
+                      style={{
+                        background: room.isFull && !room.isStarted ? 'rgba(255,255,255,0.04)' : 'linear-gradient(to right, #4a1010, #7a1818)',
+                        color: room.isFull && !room.isStarted ? 'rgba(150,110,70,0.6)' : '#f0d8b8',
+                        border: '1px solid rgba(160,80,50,0.2)',
+                      }}
+                    >
+                      {room.isStarted ? '게임 참여' : room.isFull ? '대기 중...' : '참여하기'}
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {!loadingRooms && activeRooms.length === 0 && (
-        <Card variant="glass" className="w-full max-w-md mt-5 rounded-2xl">
-          <CardContent className="py-4 text-center">
-            <p className="text-stone-500 text-sm">현재 활성 게임이 없습니다. 새 게임을 생성해주세요.</p>
-          </CardContent>
-        </Card>
+        <p
+          className="mt-8 text-xs text-center animate-fade-in"
+          style={{ color: 'rgba(90,60,35,0.55)' }}
+        >
+          진행 중인 게임이 없습니다
+        </p>
       )}
 
       <MusicPlayer />

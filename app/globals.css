@@ -33,32 +33,66 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
     overflow-x: hidden;
+    /* 배경 기본 색 */
+    background-color: #0c0704;
   }
 }
 
-/* Glassmorphism 효과 */
+/* ── 그레인 텍스처 (필름/종이 질감) ──────────────────────────────────────── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 280px 280px;
+}
+
+/* ── Glassmorphism ────────────────────────────────────────────────────────── */
 .glass {
-  background: rgba(25, 12, 10, 0.78);
+  background: rgba(22, 11, 8, 0.82);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(180, 120, 80, 0.13);
+  border: 1px solid rgba(160, 100, 60, 0.14);
 }
 
 .glass-light {
-  background: rgba(255, 220, 180, 0.05);
+  background: rgba(255, 210, 160, 0.05);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(200, 150, 100, 0.10);
+  border: 1px solid rgba(180, 130, 80, 0.10);
 }
 
 .glass-card {
-  background: rgba(25, 12, 10, 0.82);
+  background: rgba(22, 10, 7, 0.88);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(180, 120, 80, 0.16);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 220, 180, 0.05);
+  border: 1px solid rgba(160, 100, 60, 0.18);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 200, 140, 0.06);
+}
+
+/* 종이/카드 질감 */
+.paper-card {
+  background: #0f0806;
+  border: 1px solid rgba(140, 90, 50, 0.22);
+  box-shadow:
+    0 2px 0 rgba(255, 200, 130, 0.04) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.4) inset,
+    0 8px 40px rgba(0, 0, 0, 0.7),
+    0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* 어두운 패널 (밤 페이즈 등) */
+.panel-dark {
+  background: rgba(10, 5, 3, 0.92);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-top: 1px solid rgba(140, 80, 50, 0.2);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 180, 100, 0.05);
 }
 
 @layer utilities {
@@ -67,7 +101,7 @@
   }
 }
 
-/* 모바일 최적화 */
+/* ── 모바일 최적화 ────────────────────────────────────────────────────────── */
 * {
   -webkit-tap-highlight-color: transparent;
 }
@@ -76,9 +110,9 @@ button, a {
   touch-action: manipulation;
 }
 
-/* 텍스트 글로우 */
+/* ── 텍스트 글로우 ────────────────────────────────────────────────────────── */
 .text-glow-gold {
-  text-shadow: 0 0 20px rgba(212, 160, 23, 0.65), 0 0 40px rgba(212, 160, 23, 0.25);
+  text-shadow: 0 0 24px rgba(210, 150, 40, 0.7), 0 0 48px rgba(210, 150, 40, 0.3);
 }
 
 .text-glow-cyan {
@@ -90,16 +124,16 @@ button, a {
 }
 
 .text-glow-red {
-  text-shadow: 0 0 20px rgba(248, 113, 113, 0.5), 0 0 40px rgba(248, 113, 113, 0.2);
+  text-shadow: 0 0 24px rgba(240, 80, 60, 0.55), 0 0 48px rgba(240, 80, 60, 0.2);
 }
 
 .text-glow-amber {
   text-shadow: 0 0 20px rgba(251, 191, 36, 0.5), 0 0 40px rgba(251, 191, 36, 0.2);
 }
 
-/* 박스 글로우 */
+/* ── 박스 글로우 ──────────────────────────────────────────────────────────── */
 .glow-gold {
-  box-shadow: 0 0 24px rgba(212, 160, 23, 0.38), 0 0 48px rgba(212, 160, 23, 0.15);
+  box-shadow: 0 0 20px rgba(180, 120, 30, 0.35), 0 0 40px rgba(180, 120, 30, 0.12);
 }
 
 .glow-cyan {
@@ -118,7 +152,22 @@ button, a {
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.3), 0 0 40px rgba(245, 158, 11, 0.1);
 }
 
-/* 로딩 스피너 */
+/* ── 장식 구분선 ──────────────────────────────────────────────────────────── */
+.divider-ornament {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.divider-ornament::before,
+.divider-ornament::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(140, 90, 50, 0.4), transparent);
+}
+
+/* ── 스피너 ───────────────────────────────────────────────────────────────── */
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
@@ -126,13 +175,13 @@ button, a {
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(212, 160, 23, 0.15);
-  border-top-color: #d4a017;
+  border: 3px solid rgba(180, 120, 30, 0.15);
+  border-top-color: #c89030;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
-/* 음악 바 시각화 */
+/* ── 음악 바 ──────────────────────────────────────────────────────────────── */
 @keyframes musicBar {
   0%, 100% { height: 4px; }
   50% { height: 14px; }
@@ -143,97 +192,112 @@ button, a {
   min-height: 4px;
 }
 
-/* 부드러운 펄스 */
-@keyframes pulseSoft {
-  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(212, 160, 23, 0.3); }
-  50% { opacity: 0.9; box-shadow: 0 0 0 8px rgba(212, 160, 23, 0); }
-}
-
-.animate-pulse-soft {
-  animation: pulseSoft 2s ease-in-out infinite;
-}
-
-/* 페이드인 */
+/* ── 페이드인 ─────────────────────────────────────────────────────────────── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.4s ease-out forwards;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-/* 반짝임 효과 */
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.35s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── 반짝임 ───────────────────────────────────────────────────────────────── */
 @keyframes shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
   background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  animation: shimmer 2.5s infinite;
 }
 
-/* 부유 애니메이션 */
+/* ── 부유 애니메이션 ─────────────────────────────────────────────────────── */
 @keyframes float {
-  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
-  50% { transform: translateY(-20px) scale(1.05); opacity: 0.8; }
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.5; }
+  50% { transform: translateY(-22px) scale(1.04); opacity: 0.7; }
 }
 
 @keyframes floatDelayed {
-  0%, 100% { transform: translateY(0px) scale(1); opacity: 0.4; }
-  50% { transform: translateY(-15px) scale(1.03); opacity: 0.6; }
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.3; }
+  50% { transform: translateY(-16px) scale(1.03); opacity: 0.5; }
 }
 
 @keyframes floatSlow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
-  50% { transform: translateY(-25px) rotate(5deg); opacity: 0.5; }
+  0%, 100% { transform: translateY(0) rotate(0); opacity: 0.25; }
+  50% { transform: translateY(-28px) rotate(4deg); opacity: 0.4; }
 }
 
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+.animate-float { animation: float 7s ease-in-out infinite; }
+.animate-float-delayed { animation: floatDelayed 9s ease-in-out infinite 2s; }
+.animate-float-slow { animation: floatSlow 11s ease-in-out infinite 1s; }
+
+/* ── 펄스 ─────────────────────────────────────────────────────────────────── */
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
 }
 
-.animate-float-delayed {
-  animation: floatDelayed 8s ease-in-out infinite 2s;
+.animate-pulse-soft {
+  animation: pulseSoft 2.5s ease-in-out infinite;
 }
 
-.animate-float-slow {
-  animation: floatSlow 10s ease-in-out infinite 1s;
-}
-
-/* 위상 강조 배너 */
+/* ── 페이즈 배너 ──────────────────────────────────────────────────────────── */
 @keyframes phaseGlow {
-  0%, 100% { box-shadow: 0 0 20px var(--phase-color, rgba(212, 160, 23, 0.3)); }
-  50% { box-shadow: 0 0 40px var(--phase-color, rgba(212, 160, 23, 0.5)), 0 0 60px var(--phase-color, rgba(212, 160, 23, 0.2)); }
+  0%, 100% { box-shadow: 0 0 20px var(--phase-color, rgba(180,120,30,0.3)); }
+  50% { box-shadow: 0 0 40px var(--phase-color, rgba(180,120,30,0.5)), 0 0 60px var(--phase-color, rgba(180,120,30,0.2)); }
 }
 
 .phase-banner {
   animation: phaseGlow 3s ease-in-out infinite;
 }
 
-/* 별빛 애니메이션 */
+/* ── 별빛 ─────────────────────────────────────────────────────────────────── */
 @keyframes twinkle {
   0%, 100% { opacity: 0.2; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.3); }
 }
 
-.star {
-  animation: twinkle ease-in-out infinite;
-}
+.star { animation: twinkle ease-in-out infinite; }
 
-/* 카운트다운 펄스 */
+/* ── 긴박감 ───────────────────────────────────────────────────────────────── */
 @keyframes urgentPulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.03); }
 }
 
-.animate-urgent {
-  animation: urgentPulse 1s ease-in-out infinite;
-}
+.animate-urgent { animation: urgentPulse 1s ease-in-out infinite; }
 
-/* 노치/홈 인디케이터 안전 영역 */
+/* ── 안전 영역 ────────────────────────────────────────────────────────────── */
 .pb-safe {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
@@ -242,32 +306,55 @@ button, a {
   bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
-/* 스크롤바 커스텀 */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: rgba(25, 12, 10, 0.5);
-}
+/* ── 스크롤바 ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(212, 160, 23, 0.3);
+  background: rgba(180, 120, 50, 0.25);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(212, 160, 23, 0.5);
+  background: rgba(180, 120, 50, 0.45);
 }
 
-/* 입력 필드 자동완성 스타일 */
+/* ── 자동완성 ─────────────────────────────────────────────────────────────── */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #f5e6c8;
-  -webkit-box-shadow: 0 0 0px 1000px rgba(25, 12, 10, 0.85) inset;
+  -webkit-text-fill-color: #e8d5b0;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(20, 10, 6, 0.9) inset;
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* 구분선 그라데이션 */
+/* ── 구분선 그라데이션 ────────────────────────────────────────────────────── */
 .divider-glow {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(212, 160, 23, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(180, 120, 50, 0.4), transparent);
+}
+
+/* ── 용의자 카드 (투표) ───────────────────────────────────────────────────── */
+.suspect-card {
+  background: rgba(18, 9, 6, 0.85);
+  border: 1px solid rgba(130, 80, 50, 0.2);
+  transition: all 0.2s ease;
+}
+
+.suspect-card:hover {
+  border-color: rgba(180, 110, 60, 0.45);
+  background: rgba(25, 12, 7, 0.9);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.suspect-card.selected {
+  border-color: rgba(220, 80, 60, 0.7);
+  background: rgba(80, 15, 10, 0.5);
+  box-shadow: 0 0 20px rgba(200, 60, 40, 0.25), 0 4px 24px rgba(0,0,0,0.6);
+}
+
+/* ── 인비테이션 카드 (설정 화면) ──────────────────────────────────────────── */
+.invite-card {
+  background: linear-gradient(145deg, #0f0806 0%, #120a07 100%);
+  border: 1px solid rgba(160, 100, 55, 0.2);
+  box-shadow: 0 2px 0 rgba(255,200,130,0.04) inset, 0 8px 32px rgba(0,0,0,0.6);
 }
