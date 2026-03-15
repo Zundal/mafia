@@ -253,15 +253,28 @@ function GamePageContent() {
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
           <Card className="mb-6 animate-fade-in-up">
             <CardContent className="pt-6 pb-6">
-              <h2 className="text-3xl sm:text-4xl font-bold text-center mb-2">
-                {gameState.winner === "citizens" && <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent text-glow-cyan">🎉 시민 팀 승리!</span>}
-                {gameState.winner === "mafia" && <span className="bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent text-glow-red">🍷 마피아 팀 승리!</span>}
-                {gameState.winner === "drunkard" && <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent text-glow-amber">🥴 만취객 승리!</span>}
-              </h2>
+              <div className="text-center mb-4">
+                <div className="text-5xl mb-3">
+                  {gameState.winner === "citizens" && "🎉"}
+                  {gameState.winner === "mafia" && "🍷"}
+                  {gameState.winner === "drunkard" && "🥴"}
+                </div>
+                <h2 className="text-3xl sm:text-4xl font-bold mb-1">
+                  {gameState.winner === "citizens" && <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent text-glow-cyan">시민 팀 승리!</span>}
+                  {gameState.winner === "mafia" && <span className="bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent text-glow-red">마피아 팀 승리!</span>}
+                  {gameState.winner === "drunkard" && <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent text-glow-amber">만취객 승리!</span>}
+                </h2>
+                <p className="text-stone-500 text-sm">
+                  {gameState.winner === "citizens" && "범인의 정체가 밝혀졌습니다"}
+                  {gameState.winner === "mafia" && "범인이 끝까지 정체를 숨기는 데 성공했습니다"}
+                  {gameState.winner === "drunkard" && "만취객이 결국 쫓겨났습니다"}
+                </p>
+              </div>
               <Separator glow className="my-4" />
-              <div className="space-y-2">
+              <p className="text-stone-600 text-[10px] uppercase tracking-widest font-medium mb-2">게임 기록</p>
+              <div className="space-y-1.5">
                 {gameState.history.map((event, i) => (
-                  <p key={i} className="text-stone-300 text-sm leading-relaxed border-l-2 border-stone-700/50 pl-3">{event}</p>
+                  <p key={i} className="text-stone-400 text-xs leading-relaxed border-l-2 border-stone-700/50 pl-3">{event}</p>
                 ))}
               </div>
             </CardContent>
@@ -321,21 +334,39 @@ function GamePageContent() {
             {canAct ? (
               done ? (
                 <div className="text-center p-4 glass border-green-500/30 bg-green-500/10 rounded-xl">
-                  <p className="text-green-400 font-bold mb-1">✓ 액션 완료</p>
-                  <p className="text-stone-400 text-sm">다른 플레이어들을 기다리는 중...</p>
+                  <div className="text-2xl mb-1.5">
+                    {currentPlayer?.role === "mafia" ? "🍷" : currentPlayer?.role === "police" ? "🕵️" : "🧹"}
+                  </div>
+                  <p className="text-green-400 font-bold mb-1">완료했습니다</p>
+                  <p className="text-stone-500 text-xs">다른 사람들을 기다리는 중...</p>
                   {currentPlayer?.role === "police" && gameState.nightActions?.investigate?.playerId === currentPlayerId && (
-                    <div className="mt-3 p-3 glass border-amber-500/30 bg-amber-500/10 rounded-xl">
-                      <p className="font-bold text-stone-100">{gameState.nightActions.investigate.result ? "🚨 범인입니다!" : "✅ 범인이 아닙니다."}</p>
+                    <div className={cn(
+                      "mt-3 p-3 rounded-xl border text-center",
+                      gameState.nightActions.investigate.result
+                        ? "glass border-red-500/40 bg-red-500/10"
+                        : "glass border-green-500/30 bg-green-500/8"
+                    )}>
+                      <p className="font-bold text-base">
+                        {gameState.nightActions.investigate.result ? "🚨 범인입니다!" : "✅ 범인이 아닙니다."}
+                      </p>
+                      <p className="text-stone-500 text-xs mt-1">이 정보를 잘 활용하세요</p>
                     </div>
                   )}
                 </div>
               ) : (
                 <>
-                  <p className="text-stone-200 font-semibold text-sm">
-                    {currentPlayer.role === "mafia" && "🍷 제거할 대상 선택"}
-                    {currentPlayer.role === "police" && "🕵️ 조사할 대상 선택"}
-                    {currentPlayer.role === "doctor" && "🧹 보호할 대상 선택"}
-                  </p>
+                  <div className="rounded-xl p-3 bg-stone-800/40 border border-stone-700/30 mb-1">
+                    <p className="text-stone-300 font-semibold text-sm">
+                      {currentPlayer.role === "mafia" && "🍷 오늘 밤 누구를 제거하시겠습니까?"}
+                      {currentPlayer.role === "police" && "🕵️ 오늘 밤 누구를 조사하시겠습니까?"}
+                      {currentPlayer.role === "doctor" && "🧹 오늘 밤 누구를 보호하시겠습니까?"}
+                    </p>
+                    <p className="text-stone-600 text-xs mt-0.5">
+                      {currentPlayer.role === "mafia" && "선택한 사람은 내일 아침 사라집니다"}
+                      {currentPlayer.role === "police" && "그 사람이 범인인지 아닌지 알 수 있습니다"}
+                      {currentPlayer.role === "doctor" && "오늘 밤 공격을 막아드립니다 (본인 포함 가능)"}
+                    </p>
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     {gameState.players.filter((p) => p.isAlive && p.id !== currentPlayerId).map((player) => (
                       <button
@@ -345,7 +376,7 @@ function GamePageContent() {
                           "p-3 rounded-xl text-sm font-medium transition-all active:scale-95",
                           selectedPlayerId === player.id
                             ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-900 font-bold shadow-lg shadow-amber-700/30"
-                            : "glass-light text-stone-100 border border-stone-700/50"
+                            : "glass-light text-stone-100 border border-stone-700/50 hover:border-stone-600/60"
                         )}
                       >{player.name}</button>
                     ))}
@@ -355,15 +386,17 @@ function GamePageContent() {
                       if (currentPlayer.role === "mafia") doNightAction("kill");
                       else if (currentPlayer.role === "police") doNightAction("investigate");
                       else doNightAction("protect");
-                    }}>확인</Button>
+                    }}>
+                      {currentPlayer.role === "mafia" ? "제거하기" : currentPlayer.role === "police" ? "조사하기" : "보호하기"}
+                    </Button>
                   )}
                 </>
               )
             ) : (
-              <div className="text-center py-4">
-                <div className="text-3xl mb-2">😴</div>
-                <p className="text-stone-300 text-sm">밤입니다. 액션이 없는 역할입니다.</p>
-                <p className="text-stone-500 text-xs mt-1">지도에서 자유롭게 이동하세요</p>
+              <div className="text-center py-3">
+                <div className="text-3xl mb-2 opacity-60">😴</div>
+                <p className="text-stone-400 text-sm font-medium">잠든 척하며 기다리세요</p>
+                <p className="text-stone-600 text-xs mt-1">지도에서 자유롭게 이동할 수 있어요</p>
               </div>
             )}
 
@@ -422,25 +455,35 @@ function GamePageContent() {
             <div className="w-10 h-1 bg-stone-600 rounded-full mx-auto mb-2" />
 
             {/* 아침 뉴스 */}
-            <div className="glass rounded-xl p-3 border border-amber-500/20 bg-amber-900/8">
-              <p className="text-amber-400 font-semibold text-sm mb-2 flex items-center gap-1.5">📰 아침 뉴스</p>
-              <div className="space-y-1.5">
+            <div className="rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-950/20 to-stone-900/20 overflow-hidden">
+              <div className="flex items-center gap-2 px-3 py-2 border-b border-amber-600/15">
+                <span className="text-sm">📰</span>
+                <span className="text-amber-400 font-bold text-xs tracking-wide uppercase">아침 뉴스</span>
+                <span className="ml-auto text-stone-700 text-[10px]">방금 들어온 소식</span>
+              </div>
+              <div className="p-3 space-y-2">
                 {gameState.history.slice(-3).map((event, i) => (
-                  <p key={i} className="text-stone-300 text-xs leading-relaxed border-l-2 border-amber-500/30 pl-2">{event}</p>
+                  <p key={i} className={cn(
+                    "text-xs leading-relaxed border-l-2 pl-2.5",
+                    i === 0 ? "text-stone-200 border-amber-500/50" : "text-stone-500 border-stone-700/40"
+                  )}>{event}</p>
                 ))}
               </div>
             </div>
 
-            {/* 생존자 목록 (간략) */}
-            <div className="flex flex-wrap gap-1.5">
-              {gameState.players.filter((p) => p.isAlive).map((p) => (
-                <Badge key={p.id} variant={p.id === currentPlayerId ? "info" : "secondary"} className="text-xs">
-                  {p.name} {p.id === currentPlayerId ? "(나)" : ""}
-                </Badge>
-              ))}
+            {/* 생존자 목록 */}
+            <div>
+              <p className="text-stone-600 text-[10px] font-medium uppercase tracking-wider mb-1.5">생존자 ({gameState.players.filter(p => p.isAlive).length}명)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {gameState.players.filter((p) => p.isAlive).map((p) => (
+                  <Badge key={p.id} variant={p.id === currentPlayerId ? "info" : "secondary"} className="text-xs">
+                    {p.name}{p.id === currentPlayerId ? " (나)" : ""}
+                  </Badge>
+                ))}
+              </div>
             </div>
 
-            <p className="text-stone-500 text-xs text-center">지도에서 서로 이야기를 나눠보세요</p>
+            <p className="text-stone-600 text-xs text-center">지도를 돌아다니며 수상한 사람을 찾아보세요</p>
 
             <Button
               variant="default"

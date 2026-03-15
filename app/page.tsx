@@ -188,23 +188,35 @@ export default function Home() {
             )}
           </Button>
 
-          <Button
-            variant="glass"
-            size="default"
-            className="w-full h-11"
+          <button
+            className="w-full text-left rounded-2xl p-3.5 border border-stone-700/30 hover:border-amber-600/30 bg-stone-800/15 hover:bg-stone-800/35 transition-all group active:scale-[0.99] cursor-pointer"
             onClick={() => router.push("/demo")}
           >
-            🚶 혼자 해보기
-          </Button>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-stone-200 font-semibold text-sm group-hover:text-amber-300 transition-colors flex items-center gap-1.5">
+                  <span>🚶</span> 혼자 해보기
+                </p>
+                <p className="text-stone-600 text-xs mt-0.5">아파트 맵을 자유롭게 탐험해보세요</p>
+              </div>
+              <span className="text-stone-700 group-hover:text-amber-600 transition-colors text-sm mr-0.5">→</span>
+            </div>
+          </button>
 
-          <Button
-            variant="glass"
-            size="default"
-            className="w-full h-11"
+          <button
+            className="w-full text-left rounded-2xl p-3.5 border border-stone-700/30 hover:border-stone-600/40 bg-stone-800/15 hover:bg-stone-800/35 transition-all group active:scale-[0.99] cursor-pointer"
             onClick={() => router.push("/story")}
           >
-            📖 스토리 보기
-          </Button>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-stone-200 font-semibold text-sm group-hover:text-stone-100 transition-colors flex items-center gap-1.5">
+                  <span>📖</span> 스토리 보기
+                </p>
+                <p className="text-stone-600 text-xs mt-0.5">역할, 규칙, 게임 배경 확인</p>
+              </div>
+              <span className="text-stone-700 group-hover:text-stone-500 transition-colors text-sm mr-0.5">→</span>
+            </div>
+          </button>
 
           <Button
             variant="ghost"
