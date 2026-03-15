@@ -51,10 +51,11 @@ interface Props {
   currentPlayerId: string | null;
   players: PlayerData[];
   nightMode: boolean;
+  demoMode?: boolean;
 }
 
 // ─── 컴포넌트 ─────────────────────────────────────────────────────────────────
-export default function GameCanvas({ currentPlayerId, players, nightMode }: Props) {
+export default function GameCanvas({ currentPlayerId, players, nightMode, demoMode }: Props) {
   const mountRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -288,9 +289,49 @@ export default function GameCanvas({ currentPlayerId, players, nightMode }: Prop
     return () => { window.removeEventListener("keydown", kd); window.removeEventListener("keyup", ku); };
   }, []);
 
-  // ─── 위치 동기화 ─────────────────────────────────────────────────────────
+  // ─── 위치 동기화 (데모 모드: NPC 배회 / 일반 모드: API 동기화) ───────────
   useEffect(() => {
     if (!currentPlayerId) return;
+
+    if (demoMode) {
+      // 데모 모드: NPC들이 맵을 배회
+      const npcTargets = new Map<string, { x: number; z: number }>();
+      players.forEach((p, idx) => {
+        if (p.id === currentPlayerId) return;
+        const sp = SPAWNS[idx % SPAWNS.length];
+        npcTargets.set(p.id, { x: sp.x + (Math.random() - 0.5) * 200, z: sp.z + (Math.random() - 0.5) * 150 });
+        otherPosRef.current.set(p.id, { x: sp.x, z: sp.z });
+      });
+
+      const wander = setInterval(() => {
+        players.forEach((p) => {
+          if (p.id === currentPlayerId) return;
+          const cur = otherPosRef.current.get(p.id) ?? { x: 400, z: 300 };
+          const tgt = npcTargets.get(p.id) ?? { x: 400, z: 300 };
+          const dx = tgt.x - cur.x;
+          const dz = tgt.z - cur.z;
+          const dist = Math.sqrt(dx * dx + dz * dz);
+          if (dist < 12) {
+            // 새 목표 (랜덤 방으로)
+            const room = ROOMS[Math.floor(Math.random() * ROOMS.length)];
+            npcTargets.set(p.id, {
+              x: room.x1 + 20 + Math.random() * (room.x2 - room.x1 - 40),
+              z: room.z1 + 20 + Math.random() * (room.z2 - room.z1 - 40),
+            });
+          } else {
+            const spd = 3.5; // 50ms 간격이므로 픽셀/틱
+            otherPosRef.current.set(p.id, {
+              x: Math.max(15, Math.min(MAP_W - 15, cur.x + (dx / dist) * spd)),
+              z: Math.max(15, Math.min(MAP_H - 15, cur.z + (dz / dist) * spd)),
+            });
+          }
+        });
+      }, 50);
+
+      return () => clearInterval(wander);
+    }
+
+    // 일반 모드: API 동기화
     const push = setInterval(() => {
       const { x, z } = myPosRef.current;
       fetch("/api/positions", {
@@ -310,7 +351,7 @@ export default function GameCanvas({ currentPlayerId, players, nightMode }: Prop
     }, 200);
 
     return () => { clearInterval(push); clearInterval(pull); };
-  }, [currentPlayerId]);
+  }, [currentPlayerId, demoMode]); // eslint-disable-line
 
   // ─── 조이스틱 이벤트 ──────────────────────────────────────────────────────
   const onTouchStart = useCallback((e: React.TouchEvent) => {
