@@ -192,6 +192,15 @@ export default function Home() {
             variant="glass"
             size="default"
             className="w-full h-11"
+            onClick={() => router.push("/demo")}
+          >
+            🚶 혼자 해보기
+          </Button>
+
+          <Button
+            variant="glass"
+            size="default"
+            className="w-full h-11"
             onClick={() => router.push("/story")}
           >
             📖 스토리 보기

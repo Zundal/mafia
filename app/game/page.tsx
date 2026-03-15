@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { GameState, Player } from "@/lib/types";
 import PhaseIndicator from "@/app/components/PhaseIndicator";
 import RoleCard from "@/app/components/RoleCard";
@@ -15,6 +16,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import type { PlayerData } from "@/app/game/GameCanvas";
+
+// Three.js GameCanvas는 SSR 비활성화 (브라우저 전용 API)
+const GameCanvas = dynamic(() => import("@/app/game/GameCanvas"), { ssr: false });
 
 function LoadingScreen() {
   return (
@@ -37,62 +42,42 @@ function LoadingScreen() {
   );
 }
 
-// 페이즈별 제한 시간 (초) - 서버와 동일하게 맞춤
-const PHASE_DURATIONS_SEC = {
-  night: 60,
-  day: 120,
-  voting: 90,
-} as const;
+const PHASE_DURATIONS_SEC = { night: 60, day: 120, voting: 90 } as const;
 
 function PhaseTimer({ phaseEndTime, phase }: { phaseEndTime?: number; phase: string }) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
-
   useEffect(() => {
     if (!phaseEndTime || !["night", "day", "voting"].includes(phase)) return;
-    const update = () => {
-      const remaining = Math.max(0, Math.ceil((phaseEndTime - Date.now()) / 1000));
-      setTimeLeft(remaining);
-    };
+    const update = () => setTimeLeft(Math.max(0, Math.ceil((phaseEndTime - Date.now()) / 1000)));
     update();
-    const interval = setInterval(update, 500);
-    return () => clearInterval(interval);
+    const iv = setInterval(update, 500);
+    return () => clearInterval(iv);
   }, [phaseEndTime, phase]);
-
   if (!phaseEndTime || !["night", "day", "voting"].includes(phase)) return null;
-
   const totalSec = PHASE_DURATIONS_SEC[phase as keyof typeof PHASE_DURATIONS_SEC] ?? 60;
   const pct = Math.max(0, Math.min(100, (timeLeft / totalSec) * 100));
-  const isUrgent = timeLeft <= 10;
-  const isWarning = timeLeft <= 30;
-
-  const barColor = isUrgent
-    ? "bg-gradient-to-r from-red-500 to-rose-500"
-    : isWarning
-    ? "bg-gradient-to-r from-orange-500 to-red-500"
-    : "bg-gradient-to-r from-amber-500 to-yellow-500";
-
-  const textColor = isUrgent ? "text-red-400" : isWarning ? "text-orange-400" : "text-amber-400";
-
-  const mins = Math.floor(timeLeft / 60);
-  const secs = timeLeft % 60;
-  const timeStr = mins > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : `${secs}초`;
-
+  const isUrgent = timeLeft <= 10, isWarn = timeLeft <= 30;
+  const bar = isUrgent ? "bg-gradient-to-r from-red-500 to-rose-500" : isWarn ? "bg-gradient-to-r from-orange-500 to-red-500" : "bg-gradient-to-r from-amber-500 to-yellow-500";
+  const txt = isUrgent ? "text-red-400" : isWarn ? "text-orange-400" : "text-amber-400";
+  const mins = Math.floor(timeLeft / 60), secs = timeLeft % 60;
   return (
-    <div className={`mb-4 p-3 rounded-xl glass border ${isUrgent ? "border-red-500/40 bg-red-500/10" : isWarning ? "border-orange-500/40 bg-orange-500/10" : "border-amber-700/40"} ${isUrgent ? "animate-pulse" : ""}`}>
-      <div className="flex items-center justify-between mb-2">
+    <div className={`p-2.5 rounded-xl glass border ${isUrgent ? "border-red-500/40 bg-red-500/10 animate-pulse" : isWarn ? "border-orange-500/40 bg-orange-500/10" : "border-amber-700/40"}`}>
+      <div className="flex items-center justify-between mb-1.5">
         <span className="text-stone-400 text-xs font-medium">⏱ 제한 시간</span>
-        <span className={`font-bold text-base tabular-nums ${textColor}`}>
-          {timeLeft === 0 ? "시간 초과!" : timeStr}
+        <span className={`font-bold text-sm tabular-nums ${txt}`}>
+          {timeLeft === 0 ? "시간 초과!" : mins > 0 ? `${mins}:${String(secs).padStart(2,"0")}` : `${secs}초`}
         </span>
       </div>
-      <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-          style={{ width: `${pct}%` }}
-        />
+      <div className="h-1.5 bg-stone-800 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all duration-500 ${bar}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
+}
+
+// 캔버스용 PlayerData 변환 헬퍼
+function toCanvasPlayers(players: Player[]): PlayerData[] {
+  return players.map((p, i) => ({ id: p.id, name: p.name, colorIndex: i % 6, isAlive: p.isAlive }));
 }
 
 function GamePageContent() {
@@ -108,202 +93,57 @@ function GamePageContent() {
   const advancingRef = useRef(false);
 
   useEffect(() => {
-    if (!gameId) {
-      router.push("/");
-      return;
-    }
-
-    const savedPlayerId = localStorage.getItem(`player-${gameId}`);
-    if (savedPlayerId) setCurrentPlayerId(savedPlayerId);
-
+    if (!gameId) { router.push("/"); return; }
+    const saved = localStorage.getItem(`player-${gameId}`);
+    if (saved) setCurrentPlayerId(saved);
     fetchGameState();
-    const interval = setInterval(fetchGameState, 2000);
-    return () => clearInterval(interval);
+    const iv = setInterval(fetchGameState, 2000);
+    return () => clearInterval(iv);
   }, [gameId, router]);
 
-  // 타이머 만료 시 자동으로 다음 페이즈로 전환
   useEffect(() => {
     if (!gameState?.phaseEndTime) return;
     if (!["night", "day", "voting"].includes(gameState.phase)) return;
-
     const delay = Math.max(0, gameState.phaseEndTime - Date.now());
-    const timeout = setTimeout(async () => {
+    const t = setTimeout(async () => {
       if (advancingRef.current) return;
       advancingRef.current = true;
       try {
-        const response = await fetch("/api/game", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const r = await fetch("/api/game", {
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action: "advancePhase" }),
         });
-        if (response.ok) {
-          const data = await response.json();
-          setGameState(data);
-        }
-      } finally {
-        advancingRef.current = false;
-      }
-    }, delay + 200); // 200ms 여유
-
-    return () => clearTimeout(timeout);
+        if (r.ok) setGameState(await r.json());
+      } finally { advancingRef.current = false; }
+    }, delay + 200);
+    return () => clearTimeout(t);
   }, [gameState?.phaseEndTime, gameState?.phase]);
 
   const fetchGameState = async () => {
     try {
-      const response = await fetch("/api/game");
-      const data = await response.json();
-      if (data.error) {
-        setLoading(false);
-        if (data.error === "게임이 시작되지 않았습니다.") {
-          setTimeout(() => router.push("/"), 2000);
-        }
-        return;
-      }
+      const r = await fetch("/api/game");
+      const data = await r.json();
+      if (data.error) { setLoading(false); return; }
       setGameState(data);
       setLoading(false);
-    } catch {
-      setLoading(false);
-    }
+    } catch { setLoading(false); }
   };
 
-  const handleSelectPlayer = (playerId: string) => setSelectedPlayerId(playerId);
-
-  const handleNightAction = async (actionType: "kill" | "investigate" | "protect") => {
-    if (!gameState || !currentPlayerId || !selectedPlayerId) return;
-    try {
-      const response = await fetch("/api/game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "nightAction",
-          type: actionType,
-          playerId: currentPlayerId,
-          target: selectedPlayerId,
-        }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setGameState(data);
-        setSelectedPlayerId(null);
-      }
-    } catch {
-      toast("액션 실행 중 오류가 발생했습니다.", "error");
-    }
-  };
-
-  const handleEndNight = async () => {
-    try {
-      const response = await fetch("/api/game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "endNight" }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setGameState(data);
-      }
-    } catch {
-      toast("밤 페이즈 종료 중 오류가 발생했습니다.", "error");
-    }
-  };
-
-  const handleStartVoting = async () => {
-    try {
-      const response = await fetch("/api/game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "startVoting" }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setGameState(data);
-      }
-    } catch {
-      toast("투표 시작 중 오류가 발생했습니다.", "error");
-    }
-  };
-
-  const handleVote = async (voterId: string, targetId: string) => {
-    try {
-      const response = await fetch("/api/game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "vote", voterId, targetId }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setGameState(data);
-        toast("투표가 완료되었습니다.", "success");
-      }
-    } catch {
-      toast("투표 중 오류가 발생했습니다.", "error");
-    }
-  };
-
-  const handleStartGame = async () => {
-    try {
-      const startResponse = await fetch("/api/game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "startGame" }),
-      });
-      if (startResponse.ok) {
-        const startData = await startResponse.json();
-        setGameState(startData);
-        toast("역할이 배정되었습니다!", "success");
-      } else {
-        const error = await startResponse.json();
-        toast(error.error || "게임 시작에 실패했습니다.", "error");
-      }
-    } catch {
-      toast("게임 시작 중 오류가 발생했습니다.", "error");
-    }
-  };
-
-  const handleReady = async () => {
-    if (!currentPlayerId) return;
-    try {
-      const response = await fetch("/api/game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "ready", playerId: currentPlayerId }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setGameState(data);
-      } else {
-        const error = await response.json();
-        toast(error.error || "준비 상태 변경에 실패했습니다.", "error");
-      }
-    } catch {
-      toast("준비 상태 변경 중 오류가 발생했습니다.", "error");
-    }
-  };
-
-  const handleStartNight = async () => {
-    try {
-      const response = await fetch("/api/game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "startNight" }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setGameState(data);
-      }
-    } catch {
-      toast("밤 페이즈 시작 중 오류가 발생했습니다.", "error");
-    }
+  const apiPost = async (body: object) => {
+    const r = await fetch("/api/game", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (r.ok) setGameState(data);
+    else toast(data.error || "오류가 발생했습니다.", "error");
+    return { ok: r.ok, data };
   };
 
   const copyLink = async () => {
     const link = typeof window !== "undefined" ? `${window.location.origin}/game?gameId=${gameId}` : "";
-    try {
-      await navigator.clipboard.writeText(link);
-      toast("링크가 복사되었습니다!", "success");
-    } catch {
-      toast("링크 복사에 실패했습니다.", "error");
-    }
+    try { await navigator.clipboard.writeText(link); toast("링크가 복사되었습니다!", "success"); }
+    catch { toast("링크 복사에 실패했습니다.", "error"); }
   };
 
   if (loading) return <LoadingScreen />;
@@ -311,18 +151,12 @@ function GamePageContent() {
   if (!gameState) {
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/60 to-stone-950 flex items-center justify-center p-3 sm:p-4 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/3 left-1/4 w-56 h-56 bg-red-900/12 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-1/3 right-1/4 w-48 h-48 bg-stone-700/8 rounded-full blur-3xl animate-float-delayed" />
-        </div>
         <Card className="relative text-center max-w-md animate-fade-in-up rounded-3xl">
           <CardContent className="pt-8 pb-8">
             <div className="text-5xl mb-5">🔍</div>
             <div className="text-red-400 text-xl font-bold mb-3">게임을 찾을 수 없습니다</div>
-            <div className="text-stone-400 text-sm mb-6 leading-relaxed">게임이 생성되지 않았거나 초기화되었습니다.</div>
-            <Button variant="gradient" size="lg" className="glow-gold" onClick={() => router.push("/")}>
-              홈으로 돌아가기
-            </Button>
+            <div className="text-stone-400 text-sm mb-6">게임이 생성되지 않았거나 초기화되었습니다.</div>
+            <Button variant="gradient" size="lg" className="glow-gold" onClick={() => router.push("/")}>홈으로 돌아가기</Button>
           </CardContent>
         </Card>
         <MusicPlayer />
@@ -330,40 +164,28 @@ function GamePageContent() {
     );
   }
 
-  const currentPlayer = currentPlayerId
-    ? gameState.players.find((p) => p.id === currentPlayerId)
-    : null;
+  const currentPlayer = currentPlayerId ? gameState.players.find((p) => p.id === currentPlayerId) : null;
 
-  const handleJoin = async () => {
-    if (!playerName.trim()) {
-      toast("이름을 입력해주세요.", "warning");
-      return;
-    }
-    try {
-      const response = await fetch("/api/game", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "join", playerName: playerName.trim() }),
-      });
-      const data = await response.json();
-      if (response.ok && data.joinedPlayerId) {
-        setCurrentPlayerId(data.joinedPlayerId);
-        if (gameId) localStorage.setItem(`player-${gameId}`, data.joinedPlayerId);
-        setPlayerName("");
-        fetchGameState();
-      } else {
-        toast(data.error || "게임 참여에 실패했습니다.", "error");
-      }
-    } catch {
-      toast("게임 참여 중 오류가 발생했습니다.", "error");
-    }
-  };
-
-  // 플레이어 참여 화면
+  // ─── 참여 화면 ────────────────────────────────────────────────────────────
   if (!currentPlayerId) {
     const joinedPlayers = gameState.players.filter((p) => p.name !== "");
     const allJoined = joinedPlayers.length === 6;
-
+    const handleJoin = async () => {
+      if (!playerName.trim()) { toast("이름을 입력해주세요.", "warning"); return; }
+      try {
+        const r = await fetch("/api/game", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "join", playerName: playerName.trim() }),
+        });
+        const data = await r.json();
+        if (r.ok && data.joinedPlayerId) {
+          setCurrentPlayerId(data.joinedPlayerId);
+          if (gameId) localStorage.setItem(`player-${gameId}`, data.joinedPlayerId);
+          setPlayerName("");
+          fetchGameState();
+        } else toast(data.error || "게임 참여에 실패했습니다.", "error");
+      } catch { toast("게임 참여 중 오류가 발생했습니다.", "error"); }
+    };
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/60 to-stone-950 p-3 sm:p-4 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -372,102 +194,42 @@ function GamePageContent() {
         </div>
         <ToastContainer />
         <div className="relative max-w-2xl mx-auto pb-28">
-          <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>
-            ← 홈으로
-          </Button>
-
+          <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>← 홈으로</Button>
           <div className="text-center mb-6">
-            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">
-              🍷 집들이 미스터리
-            </h1>
+            <h1 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent">🍷 집들이 미스터리</h1>
             <Separator glow className="mt-3" />
           </div>
-
           <Card className="border-amber-600/20 bg-gradient-to-br from-amber-900/10 to-red-900/8 mb-5 animate-fade-in-up">
             <CardContent className="pt-5 text-center">
               <p className="text-amber-400 font-bold mb-2">👤 플레이어 참여</p>
-              {isHost && (
-                <p className="text-amber-400 mb-2 text-sm font-semibold">
-                  🎮 호스트: 먼저 당신의 이름을 입력하세요
-                </p>
-              )}
-              <p className="text-stone-300 text-sm">
-                <span className="text-amber-400 font-semibold">당신의 이름</span>을 입력하세요
-              </p>
+              <p className="text-stone-300 text-sm">참여 완료: <span className="text-amber-400 font-bold">{joinedPlayers.length}</span> / 6</p>
+              {allJoined && <p className="text-green-400 text-sm font-semibold mt-2 animate-pulse">✨ 모든 플레이어가 참여했습니다!</p>}
             </CardContent>
           </Card>
-
-          <div className="text-center mb-5">
-            <p className="text-stone-400 text-sm">
-              참여 완료: <span className="text-amber-400 font-bold">{joinedPlayers.length}</span> / 6
-            </p>
-            {allJoined && (
-              <p className="text-green-400 text-sm font-semibold mt-2 animate-pulse">
-                ✨ 모든 플레이어가 참여했습니다!
-              </p>
-            )}
-          </div>
-
           <div className="mb-5 flex gap-2">
-            <Input
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleJoin(); }}
-              placeholder="당신의 이름을 입력하세요"
-              className="h-12 text-lg"
-            />
-            <Button
-              variant="gradient"
-              size="lg"
-              onClick={handleJoin}
-              disabled={!playerName.trim() || allJoined}
-            >
-              {allJoined ? "가득 참" : "참여"}
-            </Button>
+            <Input value={playerName} onChange={(e) => setPlayerName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleJoin(); }} placeholder="당신의 이름을 입력하세요" className="h-12 text-lg" />
+            <Button variant="gradient" size="lg" onClick={handleJoin} disabled={!playerName.trim() || allJoined}>{allJoined ? "가득 참" : "참여"}</Button>
           </div>
-
-          {/* 참여자 목록 */}
           <div className="space-y-2">
-            <p className="text-stone-400 text-sm text-center mb-3">
-              참여한 플레이어 ({joinedPlayers.length}/6):
-            </p>
-            {joinedPlayers.length > 0 ? (
-              joinedPlayers.map((player, index) => (
-                <Card
-                  key={player.id}
-                  variant="glass"
-                  className="border-green-500/20 bg-green-500/8 p-3 animate-fade-in-up"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Badge variant="info" className="text-[10px]">#{index + 1}</Badge>
-                      <span className="text-stone-100 font-medium">{player.name}</span>
-                      {index === 0 && (
-                        <Badge variant="warning">호스트</Badge>
-                      )}
-                    </div>
-                    <span className="text-green-400 font-bold">✓</span>
+            {joinedPlayers.map((player, index) => (
+              <Card key={player.id} variant="glass" className="border-green-500/20 bg-green-500/8 p-3 animate-fade-in-up">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="info" className="text-[10px]">#{index + 1}</Badge>
+                    <span className="text-stone-100 font-medium">{player.name}</span>
+                    {index === 0 && <Badge variant="warning">호스트</Badge>}
                   </div>
-                </Card>
-              ))
-            ) : (
-              <p className="text-stone-500 text-sm text-center">아직 참여한 플레이어가 없습니다</p>
-            )}
+                  <span className="text-green-400 font-bold">✓</span>
+                </div>
+              </Card>
+            ))}
+            {joinedPlayers.length === 0 && <p className="text-stone-500 text-sm text-center">아직 참여한 플레이어가 없습니다</p>}
           </div>
-
-          {/* 호스트 링크 공유 */}
           {isHost && joinedPlayers.length > 0 && (
             <Card variant="glass" className="mt-4 border-amber-500/30 bg-amber-500/10">
               <CardContent className="pt-4">
                 <p className="text-amber-400 text-sm text-center mb-2 font-semibold">📋 게임 링크 공유</p>
-                <div className="bg-stone-900/50 rounded-lg p-2 mb-2 border border-stone-700/50">
-                  <p className="text-stone-300 text-xs font-mono break-all text-center">
-                    {typeof window !== "undefined" ? `${window.location.origin}/game?gameId=${gameId}` : ""}
-                  </p>
-                </div>
-                <Button variant="gradient-green" size="sm" className="w-full" onClick={copyLink}>
-                  📋 링크 복사
-                </Button>
+                <Button variant="gradient-green" size="sm" className="w-full" onClick={copyLink}>📋 링크 복사</Button>
               </CardContent>
             </Card>
           )}
@@ -477,292 +239,224 @@ function GamePageContent() {
     );
   }
 
-  // 게임 종료 화면
+  // ─── 게임 종료 화면 ───────────────────────────────────────────────────────
   if (gameState.phase === "ended") {
     const winnerGlow = gameState.winner === "citizens" ? "bg-green-500/8" : gameState.winner === "mafia" ? "bg-red-500/8" : "bg-amber-500/8";
-    const winnerOrb1 = gameState.winner === "citizens" ? "bg-green-500/10" : gameState.winner === "mafia" ? "bg-red-500/10" : "bg-amber-500/10";
-    const winnerOrb2 = gameState.winner === "citizens" ? "bg-emerald-500/8" : gameState.winner === "mafia" ? "bg-rose-500/8" : "bg-orange-500/8";
     return (
       <div className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/50 to-stone-950 p-3 sm:p-4 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className={`absolute top-0 left-0 right-0 h-64 ${winnerGlow} blur-3xl`} />
-          <div className={`absolute top-1/4 right-[-5%] w-64 h-64 ${winnerOrb1} rounded-full blur-3xl animate-float`} />
-          <div className={`absolute bottom-1/4 left-[-5%] w-48 h-48 ${winnerOrb2} rounded-full blur-3xl animate-float-delayed`} />
         </div>
         <ToastContainer />
         <div className="relative max-w-2xl mx-auto pb-28">
-          <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>
-            ← 홈으로
-          </Button>
+          <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>← 홈으로</Button>
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
           <Card className="mb-6 animate-fade-in-up">
             <CardContent className="pt-6 pb-6">
               <h2 className="text-3xl sm:text-4xl font-bold text-center mb-2">
-                {gameState.winner === "citizens" && (
-                  <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent text-glow-cyan">
-                    🎉 시민 팀 승리!
-                  </span>
-                )}
-                {gameState.winner === "mafia" && (
-                  <span className="bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent text-glow-red">
-                    🍷 마피아 팀 승리!
-                  </span>
-                )}
-                {gameState.winner === "drunkard" && (
-                  <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent text-glow-amber">
-                    🥴 만취객 승리!
-                  </span>
-                )}
+                {gameState.winner === "citizens" && <span className="bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent text-glow-cyan">🎉 시민 팀 승리!</span>}
+                {gameState.winner === "mafia" && <span className="bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent text-glow-red">🍷 마피아 팀 승리!</span>}
+                {gameState.winner === "drunkard" && <span className="bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent text-glow-amber">🥴 만취객 승리!</span>}
               </h2>
               <Separator glow className="my-4" />
               <div className="space-y-2">
-                {gameState.history.map((event, index) => (
-                  <p key={index} className="text-stone-300 text-sm leading-relaxed border-l-2 border-stone-700/50 pl-3">
-                    {event}
-                  </p>
+                {gameState.history.map((event, i) => (
+                  <p key={i} className="text-stone-300 text-sm leading-relaxed border-l-2 border-stone-700/50 pl-3">{event}</p>
                 ))}
               </div>
             </CardContent>
           </Card>
           <div className="space-y-3">
             {gameState.players.map((player) => (
-              <RoleCard
-                key={player.id}
-                player={player}
-                showRole={true}
-                isCurrentPlayer={player.id === currentPlayerId}
-              />
+              <RoleCard key={player.id} player={player} showRole={true} isCurrentPlayer={player.id === currentPlayerId} />
             ))}
           </div>
-          <Button variant="gradient" size="xl" className="w-full mt-6 glow-gold" onClick={() => router.push("/")}>
-            새 게임 시작
-          </Button>
+          <Button variant="gradient" size="xl" className="w-full mt-6 glow-gold" onClick={() => router.push("/")}>새 게임 시작</Button>
         </div>
         <MusicPlayer />
       </div>
     );
   }
 
-  // 밤 페이즈
+  // ─── 밤 페이즈 (Three.js 캔버스 + 하단 오버레이) ─────────────────────────
   if (gameState.phase === "night") {
-    const canAct = currentPlayer?.role === "mafia" ||
-                   currentPlayer?.role === "police" ||
-                   currentPlayer?.role === "doctor";
+    const canAct = currentPlayer?.role === "mafia" || currentPlayer?.role === "police" || currentPlayer?.role === "doctor";
     const alivePlayers = gameState.players.filter((p) => p.isAlive);
-    const needsActionPlayers = alivePlayers.filter((p) =>
-      p.role === "mafia" || p.role === "police" || p.role === "doctor"
-    );
-    const readyCount = needsActionPlayers.filter((p) => p.ready).length;
-    const allReady = needsActionPlayers.length > 0 && needsActionPlayers.every((p) => p.ready);
-    const hasCompletedAction = currentPlayer && canAct && currentPlayer.ready;
+    const needsAction = alivePlayers.filter((p) => p.role === "mafia" || p.role === "police" || p.role === "doctor");
+    const readyCount = needsAction.filter((p) => p.ready).length;
+    const allReady = needsAction.length > 0 && needsAction.every((p) => p.ready);
+    const done = currentPlayer && canAct && currentPlayer.ready;
+
+    const doNightAction = async (type: "kill" | "investigate" | "protect") => {
+      if (!currentPlayerId || !selectedPlayerId) return;
+      await apiPost({ action: "nightAction", type, playerId: currentPlayerId, target: selectedPlayerId });
+      setSelectedPlayerId(null);
+    };
 
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-purple-950 p-3 sm:p-4 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-5%] right-[10%] w-80 h-80 bg-purple-600/10 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-[10%] left-[-5%] w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl animate-float-delayed" />
-          <div className="absolute top-[40%] right-[-10%] w-48 h-48 bg-violet-500/8 rounded-full blur-3xl animate-float-slow" />
-          {[...Array(8)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-white/40 star"
-              style={{
-                top: `${10 + i * 11}%`,
-                left: `${5 + i * 12}%`,
-                animationDelay: `${i * 0.3}s`,
-                animationDuration: `${2 + i * 0.4}s`,
-              }}
-            />
-          ))}
-        </div>
+      <div className="fixed inset-0 overflow-hidden">
         <ToastContainer />
-        <div className="relative max-w-2xl mx-auto pb-28">
-          <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>
-            ← 홈으로
-          </Button>
-          <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
-          <PhaseTimer phaseEndTime={gameState.phaseEndTime} phase={gameState.phase} />
 
-          {currentPlayer?.mission && <MissionCard mission={currentPlayer.mission} />}
+        {/* Three.js 캔버스 전체 화면 */}
+        <GameCanvas currentPlayerId={currentPlayerId} players={toCanvasPlayers(gameState.players)} nightMode={true} />
 
-          {canAct ? (
-            <Card className="border-purple-500/20 mb-4 animate-fade-in-up">
-              <CardContent className="pt-6">
-                {hasCompletedAction ? (
-                  <div className="text-center">
-                    <div className="mb-4 p-4 glass border-green-500/30 bg-green-500/10 rounded-xl">
-                      <p className="text-green-400 font-bold text-lg mb-2">✓ 액션 완료</p>
-                      <p className="text-stone-300 text-sm">다른 플레이어들이 준비할 때까지 기다려주세요</p>
+        {/* 상단 페이즈 정보 */}
+        <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-3 pb-1 space-y-2 pointer-events-none">
+          <div className="pointer-events-auto">
+            <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
+          </div>
+          <div className="pointer-events-auto">
+            <PhaseTimer phaseEndTime={gameState.phaseEndTime} phase={gameState.phase} />
+          </div>
+        </div>
+
+        {/* 하단 액션 패널 */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 glass-card rounded-t-3xl border-t border-stone-700/50 max-h-[52vh] overflow-y-auto pb-safe">
+          <div className="p-4 space-y-3">
+            {/* 드래그 핸들 */}
+            <div className="w-10 h-1 bg-stone-600 rounded-full mx-auto mb-2" />
+
+            {currentPlayer?.mission && <MissionCard mission={currentPlayer.mission} />}
+
+            {canAct ? (
+              done ? (
+                <div className="text-center p-4 glass border-green-500/30 bg-green-500/10 rounded-xl">
+                  <p className="text-green-400 font-bold mb-1">✓ 액션 완료</p>
+                  <p className="text-stone-400 text-sm">다른 플레이어들을 기다리는 중...</p>
+                  {currentPlayer?.role === "police" && gameState.nightActions?.investigate?.playerId === currentPlayerId && (
+                    <div className="mt-3 p-3 glass border-amber-500/30 bg-amber-500/10 rounded-xl">
+                      <p className="font-bold text-stone-100">{gameState.nightActions.investigate.result ? "🚨 범인입니다!" : "✅ 범인이 아닙니다."}</p>
                     </div>
-                    {currentPlayer.role === "police" &&
-                     gameState.nightActions?.investigate?.playerId === currentPlayerId && (
-                      <Card variant="glass" className="mt-4 border-amber-500/30">
-                        <CardContent className="pt-4">
-                          <p className="font-bold text-stone-100">
-                            {gameState.nightActions.investigate.result ? "범인입니다! 🍷" : "범인이 아닙니다."}
-                          </p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <CardTitle className="mb-5">
-                      {currentPlayer.role === "mafia" && "🍷 제거할 대상을 선택하세요"}
-                      {currentPlayer.role === "police" && "🕵️ 조사할 대상을 선택하세요"}
-                      {currentPlayer.role === "doctor" && "🧹 보호할 대상을 선택하세요"}
-                    </CardTitle>
-                    <div className="space-y-2.5 mb-5">
-                      {gameState.players
-                        .filter((p) => p.isAlive && p.id !== currentPlayerId)
-                        .map((player) => (
-                          <button
-                            key={player.id}
-                            onClick={() => handleSelectPlayer(player.id)}
-                            className={cn(
-                              "w-full p-4 rounded-xl text-left transition-all active:scale-[0.97]",
-                              selectedPlayerId === player.id
-                                ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-900 font-bold shadow-lg shadow-amber-700/30"
-                                : "glass-light text-stone-100 hover:bg-stone-800/50 border border-stone-700/50"
-                            )}
-                          >
-                            {player.name}
-                          </button>
-                        ))}
-                    </div>
-                    {selectedPlayerId && (
-                      <Button
-                        variant="gradient-vote"
-                        size="xl"
-                        className="w-full"
-                        onClick={() => {
-                          if (currentPlayer.role === "mafia") handleNightAction("kill");
-                          else if (currentPlayer.role === "police") handleNightAction("investigate");
-                          else if (currentPlayer.role === "doctor") handleNightAction("protect");
-                        }}
-                      >
-                        확인
-                      </Button>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="border-indigo-500/20 mb-4 animate-fade-in-up text-center">
-              <CardContent className="pt-8 pb-8">
-                <div className="text-4xl mb-3">
-                  {currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen" ? "😴" : "⏳"}
+                  )}
                 </div>
-                <p className="text-stone-200 font-medium">
-                  {currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen"
-                    ? "🌙 밤입니다. 푹 주무세요..."
-                    : "다른 플레이어의 차례를 기다리는 중..."}
-                </p>
-                {(currentPlayer?.role === "drunkard" || currentPlayer?.role === "citizen") && (
-                  <p className="text-stone-500 text-xs mt-2">다른 플레이어들이 행동을 완료할 때까지 화면을 보지 마세요</p>
-                )}
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <>
+                  <p className="text-stone-200 font-semibold text-sm">
+                    {currentPlayer.role === "mafia" && "🍷 제거할 대상 선택"}
+                    {currentPlayer.role === "police" && "🕵️ 조사할 대상 선택"}
+                    {currentPlayer.role === "doctor" && "🧹 보호할 대상 선택"}
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {gameState.players.filter((p) => p.isAlive && p.id !== currentPlayerId).map((player) => (
+                      <button
+                        key={player.id}
+                        onClick={() => setSelectedPlayerId(player.id)}
+                        className={cn(
+                          "p-3 rounded-xl text-sm font-medium transition-all active:scale-95",
+                          selectedPlayerId === player.id
+                            ? "bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-900 font-bold shadow-lg shadow-amber-700/30"
+                            : "glass-light text-stone-100 border border-stone-700/50"
+                        )}
+                      >{player.name}</button>
+                    ))}
+                  </div>
+                  {selectedPlayerId && (
+                    <Button variant="gradient-vote" size="lg" className="w-full" onClick={() => {
+                      if (currentPlayer.role === "mafia") doNightAction("kill");
+                      else if (currentPlayer.role === "police") doNightAction("investigate");
+                      else doNightAction("protect");
+                    }}>확인</Button>
+                  )}
+                </>
+              )
+            ) : (
+              <div className="text-center py-4">
+                <div className="text-3xl mb-2">😴</div>
+                <p className="text-stone-300 text-sm">밤입니다. 액션이 없는 역할입니다.</p>
+                <p className="text-stone-500 text-xs mt-1">지도에서 자유롭게 이동하세요</p>
+              </div>
+            )}
 
-          {/* 준비 상태 */}
-          {needsActionPlayers.length > 0 && (
-            <Card variant="glass" className="border-stone-700/50 mb-4">
-              <CardContent className="pt-4">
-                <p className="text-stone-300 text-center text-sm mb-3">
-                  준비 완료:{" "}
-                  <span className="text-amber-400 font-bold">{readyCount}</span>{" "}
-                  / {needsActionPlayers.length}
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {needsActionPlayers.map((player) => (
-                    <Badge
-                      key={player.id}
-                      variant={player.ready ? "success" : "secondary"}
-                    >
-                      {player.name} {player.ready ? "✓" : "⏳"}
+            {/* 준비 상태 */}
+            {needsAction.length > 0 && (
+              <div className="glass rounded-xl p-3 border border-stone-700/40">
+                <p className="text-stone-400 text-xs text-center mb-2">준비: <span className="text-amber-400 font-bold">{readyCount}</span>/{needsAction.length}</p>
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {needsAction.map((p) => (
+                    <Badge key={p.id} variant={p.ready ? "success" : "secondary"}>
+                      {p.name} {p.ready ? "✓" : "⏳"}
                     </Badge>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            )}
 
-          <Button
-            variant={allReady ? "gradient-purple" : "secondary"}
-            size="xl"
-            className="w-full"
-            onClick={handleEndNight}
-            disabled={!allReady}
-          >
-            {allReady ? "밤 페이즈 종료" : `모든 플레이어 준비 대기 중... (${readyCount}/${needsActionPlayers.length})`}
-          </Button>
+            <Button
+              variant={allReady ? "gradient-purple" : "secondary"}
+              size="lg" className="w-full"
+              onClick={() => apiPost({ action: "endNight" })}
+              disabled={!allReady}
+            >
+              {allReady ? "밤 페이즈 종료" : `대기 중... (${readyCount}/${needsAction.length})`}
+            </Button>
+          </div>
         </div>
+
         <MusicPlayer />
       </div>
     );
   }
 
-  // 낮 페이즈
+  // ─── 낮 페이즈 (Three.js 캔버스 + 하단 오버레이) ─────────────────────────
   if (gameState.phase === "day") {
     return (
-      <div className="relative min-h-screen bg-gradient-to-br from-slate-950 via-amber-950 to-orange-950 p-3 sm:p-4 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[-15%] left-[50%] -translate-x-1/2 w-96 h-48 bg-amber-500/15 rounded-full blur-3xl" />
-          <div className="absolute top-[5%] right-[5%] w-64 h-64 bg-orange-500/10 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-[15%] left-[5%] w-48 h-48 bg-amber-600/8 rounded-full blur-3xl animate-float-delayed" />
-        </div>
+      <div className="fixed inset-0 overflow-hidden">
         <ToastContainer />
-        <div className="relative max-w-2xl mx-auto pb-28">
-          <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>
-            ← 홈으로
-          </Button>
-          <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
-          <PhaseTimer phaseEndTime={gameState.phaseEndTime} phase={gameState.phase} />
 
-          <Card className="border-amber-500/20 mb-6 animate-fade-in-up">
-            <CardHeader>
-              <CardTitle className="text-amber-300 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center text-base">📰</span>
-                아침 뉴스
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0 space-y-2.5">
-              {gameState.history.slice(-3).map((event, index) => (
-                <p key={index} className="text-stone-300 text-sm leading-relaxed border-l-2 border-amber-500/30 pl-3">
-                  {event}
-                </p>
-              ))}
-            </CardContent>
-          </Card>
+        {/* Three.js 캔버스 전체 화면 */}
+        <GameCanvas currentPlayerId={currentPlayerId} players={toCanvasPlayers(gameState.players)} nightMode={false} />
 
-          <div className="space-y-3 mb-6">
-            {gameState.players.map((player) => (
-              <RoleCard
-                key={player.id}
-                player={player}
-                showRole={false}
-                isCurrentPlayer={player.id === currentPlayerId}
-              />
-            ))}
+        {/* 상단 페이즈 정보 */}
+        <div className="absolute top-0 left-0 right-0 z-10 px-3 pt-3 pb-1 space-y-2 pointer-events-none">
+          <div className="pointer-events-auto">
+            <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
           </div>
-
-          <Button
-            variant="default"
-            size="xl"
-            className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-lg shadow-amber-500/30 glow-amber"
-            onClick={handleStartVoting}
-          >
-            🗳️ 투표 시작
-          </Button>
+          <div className="pointer-events-auto">
+            <PhaseTimer phaseEndTime={gameState.phaseEndTime} phase={gameState.phase} />
+          </div>
         </div>
+
+        {/* 하단 정보 패널 */}
+        <div className="absolute bottom-0 left-0 right-0 z-10 glass-card rounded-t-3xl border-t border-stone-700/50 max-h-[48vh] overflow-y-auto pb-safe">
+          <div className="p-4 space-y-3">
+            <div className="w-10 h-1 bg-stone-600 rounded-full mx-auto mb-2" />
+
+            {/* 아침 뉴스 */}
+            <div className="glass rounded-xl p-3 border border-amber-500/20 bg-amber-900/8">
+              <p className="text-amber-400 font-semibold text-sm mb-2 flex items-center gap-1.5">📰 아침 뉴스</p>
+              <div className="space-y-1.5">
+                {gameState.history.slice(-3).map((event, i) => (
+                  <p key={i} className="text-stone-300 text-xs leading-relaxed border-l-2 border-amber-500/30 pl-2">{event}</p>
+                ))}
+              </div>
+            </div>
+
+            {/* 생존자 목록 (간략) */}
+            <div className="flex flex-wrap gap-1.5">
+              {gameState.players.filter((p) => p.isAlive).map((p) => (
+                <Badge key={p.id} variant={p.id === currentPlayerId ? "info" : "secondary"} className="text-xs">
+                  {p.name} {p.id === currentPlayerId ? "(나)" : ""}
+                </Badge>
+              ))}
+            </div>
+
+            <p className="text-stone-500 text-xs text-center">지도에서 서로 이야기를 나눠보세요</p>
+
+            <Button
+              variant="default"
+              size="lg"
+              className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-lg shadow-amber-500/30"
+              onClick={() => apiPost({ action: "startVoting" })}
+            >🗳️ 투표 시작</Button>
+          </div>
+        </div>
+
         <MusicPlayer />
       </div>
     );
   }
 
-  // 투표 페이즈
+  // ─── 투표 페이즈 ──────────────────────────────────────────────────────────
   if (gameState.phase === "voting") {
     const aliveCount = gameState.players.filter((p) => p.isAlive).length;
     const votedCount = gameState.players.filter((p) => p.isAlive && p.votedFor).length;
@@ -771,17 +465,12 @@ function GamePageContent() {
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-[5%] left-[-5%] w-72 h-72 bg-pink-600/10 rounded-full blur-3xl animate-float" />
           <div className="absolute bottom-[10%] right-[-5%] w-64 h-64 bg-purple-600/10 rounded-full blur-3xl animate-float-delayed" />
-          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-rose-500/6 rounded-full blur-3xl animate-urgent" />
         </div>
         <ToastContainer />
         <div className="relative max-w-2xl mx-auto pb-28">
-          <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>
-            ← 홈으로
-          </Button>
+          <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>← 홈으로</Button>
           <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
           <PhaseTimer phaseEndTime={gameState.phaseEndTime} phase={gameState.phase} />
-
-          {/* 투표 진행률 */}
           <Card className="border-pink-500/20 mb-4">
             <CardContent className="pt-4">
               <div className="flex items-center justify-between mb-2">
@@ -789,50 +478,26 @@ function GamePageContent() {
                 <Badge variant="purple">{votedCount} / {aliveCount}명</Badge>
               </div>
               <div className="h-2 bg-stone-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
-                  style={{ width: `${aliveCount > 0 ? (votedCount / aliveCount) * 100 : 0}%` }}
-                />
+                <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style={{ width: `${aliveCount > 0 ? (votedCount / aliveCount) * 100 : 0}%` }} />
               </div>
             </CardContent>
           </Card>
-
-          <VotePanel
-            gameState={gameState}
-            currentPlayerId={currentPlayerId}
-            onVote={handleVote}
-          />
-
+          <VotePanel gameState={gameState} currentPlayerId={currentPlayerId} onVote={async (voterId, targetId) => {
+            await apiPost({ action: "vote", voterId, targetId });
+            toast("투표가 완료되었습니다.", "success");
+          }} />
           <div className="mt-4 space-y-2">
-            <p className="text-stone-500 text-xs text-center mb-2">생존자 투표 현황</p>
-            {gameState.players
-              .filter((p) => p.isAlive)
-              .map((player) => (
-                <Card
-                  key={player.id}
-                  variant="glass"
-                  className={cn(
-                    "transition-all",
-                    player.votedFor ? "border-green-500/20 bg-green-500/5" : "border-stone-700/40"
-                  )}
-                >
-                  <div className="flex justify-between items-center p-3.5">
-                    <span className="text-stone-200 font-medium text-sm">{player.name}</span>
-                    <div className="flex items-center gap-2">
-                      {player.votedFor ? (
-                        <Badge variant="success">✓ 투표 완료</Badge>
-                      ) : (
-                        <Badge variant="secondary">⏳ 대기 중</Badge>
-                      )}
-                      {gameState.voteResults?.[player.id] && (
-                        <Badge variant="purple">
-                          {gameState.voteResults[player.id]}표
-                        </Badge>
-                      )}
-                    </div>
+            {gameState.players.filter((p) => p.isAlive).map((player) => (
+              <Card key={player.id} variant="glass" className={cn("transition-all", player.votedFor ? "border-green-500/20 bg-green-500/5" : "border-stone-700/40")}>
+                <div className="flex justify-between items-center p-3.5">
+                  <span className="text-stone-200 font-medium text-sm">{player.name}</span>
+                  <div className="flex items-center gap-2">
+                    {player.votedFor ? <Badge variant="success">✓ 완료</Badge> : <Badge variant="secondary">⏳ 대기</Badge>}
+                    {gameState.voteResults?.[player.id] && <Badge variant="purple">{gameState.voteResults[player.id]}표</Badge>}
                   </div>
-                </Card>
-              ))}
+                </div>
+              </Card>
+            ))}
           </div>
         </div>
         <MusicPlayer />
@@ -840,7 +505,7 @@ function GamePageContent() {
     );
   }
 
-  // 설정 페이즈
+  // ─── 설정 페이즈 ──────────────────────────────────────────────────────────
   const joinedPlayers = gameState.players.filter((p) => p.name !== "");
   const allJoined = joinedPlayers.length === 6;
   const readyCount = gameState.players.filter((p) => p.ready).length;
@@ -855,45 +520,30 @@ function GamePageContent() {
       </div>
       <ToastContainer />
       <div className="relative max-w-2xl mx-auto pb-28">
-        <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>
-          ← 홈으로
-        </Button>
+        <Button variant="glass" size="sm" className="mb-4" onClick={() => router.push("/")}>← 홈으로</Button>
         <PhaseIndicator phase={gameState.phase} currentNight={gameState.currentNight} />
 
         {!allJoined && (
-          <Card variant="glass" className="border-amber-500/30 bg-amber-500/10 mb-4 animate-fade-in-up">
+          <Card variant="glass" className="border-amber-500/30 bg-amber-500/10 mb-4">
             <CardContent className="pt-5 text-center">
-              <p className="text-amber-400 font-medium mb-1.5">
-                ⏳ 모든 플레이어가 참여할 때까지 기다리는 중...
-              </p>
-              <p className="text-stone-300 text-sm">
-                참여 완료:{" "}
-                <span className="text-amber-400 font-bold">{joinedPlayers.length}</span> / 6
-              </p>
+              <p className="text-amber-400 font-medium mb-1">⏳ 모든 플레이어가 참여할 때까지 기다리는 중...</p>
+              <p className="text-stone-300 text-sm">참여: <span className="text-amber-400 font-bold">{joinedPlayers.length}</span> / 6</p>
             </CardContent>
           </Card>
         )}
-
         {allJoined && !gameStarted && (
-          <Card variant="glass" className="border-green-500/30 bg-green-500/10 mb-4 animate-fade-in-up">
+          <Card variant="glass" className="border-green-500/30 bg-green-500/10 mb-4">
             <CardContent className="pt-5 text-center">
-              <p className="text-green-400 font-medium mb-1">✨ 모든 플레이어가 참여했습니다!</p>
-              <p className="text-stone-300 text-sm">"게임 시작" 버튼을 눌러 역할을 배정하세요</p>
+              <p className="text-green-400 font-medium mb-1">✨ 모든 플레이어 참여 완료!</p>
+              <p className="text-stone-300 text-sm">"게임 시작" 버튼으로 역할을 배정하세요</p>
             </CardContent>
           </Card>
         )}
-
         {gameStarted && !allReady && (
           <Card variant="glass" className="border-amber-500/30 bg-amber-500/10 mb-4">
             <CardContent className="pt-5 text-center">
-              <p className="text-amber-400 font-medium mb-1">
-                ⏳ 모든 플레이어가 준비할 때까지 기다리는 중...
-              </p>
-              <p className="text-stone-300 text-sm">
-                준비 완료:{" "}
-                <span className="text-amber-400 font-bold">{readyCount}</span>{" "}
-                / {gameState.players.length}
-              </p>
+              <p className="text-amber-400 font-medium mb-1">⏳ 모든 플레이어 준비 대기 중...</p>
+              <p className="text-stone-300 text-sm">준비: <span className="text-amber-400 font-bold">{readyCount}</span> / {gameState.players.length}</p>
             </CardContent>
           </Card>
         )}
@@ -901,33 +551,17 @@ function GamePageContent() {
         <Card className="mb-6 border-stone-700/40">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-sm">
-                {gameStarted ? "🎭" : "👥"}
-              </span>
+              <span className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center text-sm">{gameStarted ? "🎭" : "👥"}</span>
               {gameStarted ? "역할 배정" : "플레이어 목록"}
             </CardTitle>
-            <p className="text-stone-400 text-sm leading-relaxed">
-              {gameStarted
-                ? "각 플레이어는 자신의 역할을 확인한 후, 폰을 다음 사람에게 넘겨주세요."
-                : "모든 플레이어가 참여하면 게임을 시작할 수 있습니다."}
-            </p>
+            <p className="text-stone-400 text-sm">{gameStarted ? "역할을 확인한 후 폰을 다음 사람에게 넘겨주세요." : "모든 플레이어가 참여하면 게임을 시작할 수 있습니다."}</p>
           </CardHeader>
           <CardContent className="pt-0 space-y-3">
             {gameState.players.map((player) => (
               <div key={player.id} className="relative">
-                <RoleCard
-                  player={player}
-                  showRole={gameStarted && player.id === currentPlayerId}
-                  isCurrentPlayer={player.id === currentPlayerId}
-                />
-                {player.name === "" && (
-                  <span className="absolute top-2 right-2 text-stone-500 text-xs font-semibold">대기 중...</span>
-                )}
-                {player.ready && gameStarted && (
-                  <Badge variant="success" className="absolute top-3 right-3">
-                    ✓ 준비
-                  </Badge>
-                )}
+                <RoleCard player={player} showRole={gameStarted && player.id === currentPlayerId} isCurrentPlayer={player.id === currentPlayerId} />
+                {player.name === "" && <span className="absolute top-2 right-2 text-stone-500 text-xs">대기 중...</span>}
+                {player.ready && gameStarted && <Badge variant="success" className="absolute top-3 right-3">✓ 준비</Badge>}
               </div>
             ))}
           </CardContent>
@@ -935,51 +569,34 @@ function GamePageContent() {
 
         {currentPlayer?.mission && <MissionCard mission={currentPlayer.mission} />}
 
-        {/* 호스트 링크 공유 */}
         {isHost && !gameStarted && joinedPlayers.length > 0 && (
           <Card variant="glass" className="mb-4 border-amber-500/30 bg-amber-500/10">
             <CardContent className="pt-4">
               <p className="text-amber-400 text-sm text-center mb-2 font-semibold">📋 게임 링크 공유</p>
-              <Button variant="gradient-green" size="sm" className="w-full" onClick={copyLink}>
-                📋 링크 복사
-              </Button>
+              <Button variant="gradient-green" size="sm" className="w-full" onClick={copyLink}>📋 링크 복사</Button>
             </CardContent>
           </Card>
         )}
 
         {!gameStarted ? (
-          <Button
-            variant={allJoined ? "gradient-purple" : "secondary"}
-            size="xl"
-            className="w-full"
-            onClick={handleStartGame}
-            disabled={!allJoined}
-          >
-            {allJoined ? "게임 시작 (역할 배정)" : `플레이어 참여 대기 중... (${joinedPlayers.length}/6)`}
+          <Button variant={allJoined ? "gradient-purple" : "secondary"} size="xl" className="w-full" onClick={() => apiPost({ action: "startGame" })} disabled={!allJoined}>
+            {allJoined ? "게임 시작 (역할 배정)" : `플레이어 대기 중... (${joinedPlayers.length}/6)`}
           </Button>
         ) : (
           <>
             {currentPlayer && !currentPlayer.ready && (
-              <Button variant="gradient-green" size="xl" className="w-full mb-3" onClick={handleReady}>
-                ✓ 준비 완료
-              </Button>
+              <Button variant="gradient-green" size="xl" className="w-full mb-3" onClick={() => apiPost({ action: "ready", playerId: currentPlayerId })}>✓ 준비 완료</Button>
             )}
             {currentPlayer?.ready && (
               <Card variant="glass" className="w-full mb-3 border-green-500/30 bg-green-500/10">
                 <CardContent className="py-4 text-center">
-                  <p className="text-green-400 font-semibold">✓ 준비 완료했습니다</p>
-                  <p className="text-stone-300 text-sm mt-1">다른 플레이어들이 준비할 때까지 기다려주세요</p>
+                  <p className="text-green-400 font-semibold">✓ 준비 완료</p>
+                  <p className="text-stone-300 text-sm mt-1">다른 플레이어들을 기다리는 중...</p>
                 </CardContent>
               </Card>
             )}
-            <Button
-              variant={allReady ? "gradient-purple" : "secondary"}
-              size="xl"
-              className="w-full"
-              onClick={handleStartNight}
-              disabled={!allReady}
-            >
-              {allReady ? "첫 밤 시작" : `모든 플레이어 준비 대기 중... (${readyCount}/${gameState.players.length})`}
+            <Button variant={allReady ? "gradient-purple" : "secondary"} size="xl" className="w-full" onClick={() => apiPost({ action: "startNight" })} disabled={!allReady}>
+              {allReady ? "첫 밤 시작" : `준비 대기 중... (${readyCount}/${gameState.players.length})`}
             </Button>
           </>
         )}
