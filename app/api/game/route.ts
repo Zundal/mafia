@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GameState } from "@/lib/types";
-import { createGame, joinGame, startGame, assignMissions, processNightAction, processNightResults, processVote, checkWinCondition } from "@/lib/game-logic";
+import { createGame, joinGame, startGame, assignMissions, processNightAction, processNightResults, processVote, resolveVotes, PHASE_DURATIONS } from "@/lib/game-logic";
 import { missions } from "@/lib/missions";
-
-// 페이즈별 제한 시간 (밀리초)
-const PHASE_DURATIONS = {
-  night: 60 * 1000,    // 60초
-  day: 120 * 1000,     // 120초
-  voting: 90 * 1000,   // 90초
-} as const;
 
 // 메모리 기반 게임 상태 저장 (실제 프로덕션에서는 데이터베이스 사용 권장)
 let gameState: GameState | null = null;
@@ -224,71 +217,9 @@ export async function POST(request: NextRequest) {
           gameState.phaseEndTime = Date.now() + PHASE_DURATIONS.voting;
 
         } else if (gameState.phase === "voting") {
-          // 투표 시간 초과: 현재까지 투표된 결과로 처리
-          const alivePlayers = gameState.players.filter((p) => p.isAlive);
-          const voteCounts: Record<string, number> = {};
-          alivePlayers.forEach((p) => {
-            if (p.votedFor) {
-              voteCounts[p.votedFor] = (voteCounts[p.votedFor] || 0) + 1;
-            }
-          });
-
-          gameState.voteResults = voteCounts;
+          // 투표 시간 초과: 현재까지 투표된 결과로 확정 (processVote와 동일 로직 공유)
           gameState.history.push("⏰ 투표 시간이 종료되었습니다.");
-
-          // 최다 득표자 찾기
-          let maxVotes = 0;
-          let eliminatedId: string | null = null;
-          Object.entries(voteCounts).forEach(([id, count]) => {
-            if (count > maxVotes) {
-              maxVotes = count;
-              eliminatedId = id;
-            }
-          });
-
-          if (eliminatedId && maxVotes > 0) {
-            const eliminated = gameState.players.find((p) => p.id === eliminatedId);
-            if (eliminated) {
-              if (eliminated.role === "drunkard") {
-                gameState.winner = "drunkard";
-                gameState.status = "finished";
-                gameState.phase = "ended";
-                gameState.history.push(`${eliminated.name}님은 만취객이었습니다! 만취객 승리!`);
-              } else {
-                eliminated.isAlive = false;
-                gameState.history.push(`${eliminated.name}님이 투표로 추방되었습니다.`);
-                const winner = checkWinCondition(gameState);
-                if (winner) {
-                  gameState.winner = winner;
-                  gameState.status = "finished";
-                  gameState.phase = "ended";
-                  gameState.history.push(winner === "citizens" ? "시민 팀 승리!" : "마피아 팀 승리!");
-                } else {
-                  gameState.phase = "night";
-                  gameState.phaseEndTime = Date.now() + PHASE_DURATIONS.night;
-                  gameState.nightActions = undefined;
-                  gameState.lastAction = undefined;
-                  gameState.voteResults = undefined;
-                  gameState.players.forEach((p) => {
-                    p.votedFor = undefined;
-                    if (p.isAlive) p.ready = false;
-                  });
-                }
-              }
-            }
-          } else {
-            // 투표 없음 → 아무도 추방 안 됨, 다음 밤으로
-            gameState.history.push("투표 없이 시간이 초과되었습니다. 아무도 추방되지 않았습니다.");
-            gameState.phase = "night";
-            gameState.phaseEndTime = Date.now() + PHASE_DURATIONS.night;
-            gameState.nightActions = undefined;
-            gameState.lastAction = undefined;
-            gameState.voteResults = undefined;
-            gameState.players.forEach((p) => {
-              p.votedFor = undefined;
-              if (p.isAlive) p.ready = false;
-            });
-          }
+          gameState = resolveVotes(gameState);
         }
 
         return NextResponse.json(gameState);

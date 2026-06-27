@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type ToastType = "success" | "error" | "info" | "warning";
 
@@ -73,11 +73,11 @@ export function toast(message: string, type: ToastType = "info") {
 
 export function ToastContainer() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  let counter = 0;
+  const counterRef = useRef(0);
 
   useEffect(() => {
     addToastFn = (message, type = "info") => {
-      const id = ++counter;
+      const id = ++counterRef.current;
       setToasts((prev) => [...prev, { id, message, type }]);
     };
     return () => { addToastFn = null; };

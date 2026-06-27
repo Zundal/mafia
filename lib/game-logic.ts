@@ -1,6 +1,13 @@
 import { GameState, Player, Role, Phase } from "./types";
 import { roleDistribution } from "./roles";
 
+// 페이즈별 제한 시간 (밀리초). route.ts와 game-logic.ts가 공유하는 단일 출처.
+export const PHASE_DURATIONS = {
+  night: 60 * 1000, // 60초
+  day: 120 * 1000, // 120초
+  voting: 90 * 1000, // 90초
+} as const;
+
 export function createGame(gameId: string): GameState {
   // 빈 플레이어 슬롯 6개 생성
   const players: Player[] = Array.from({ length: 6 }, (_, index) => ({
@@ -195,6 +202,81 @@ export function processNightResults(gameState: GameState): GameState {
   return newState;
 }
 
+// 생존자의 투표를 집계한다. (사망자는 votedFor가 없으므로 제외)
+export function tallyVotes(players: Player[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  players.forEach((p) => {
+    if (p.isAlive && p.votedFor) {
+      counts[p.votedFor] = (counts[p.votedFor] || 0) + 1;
+    }
+  });
+  return counts;
+}
+
+// 투표 종료 후 다음 밤으로 전환한다. (타이머·준비·투표 상태 초기화)
+function startNextNight(state: GameState): void {
+  state.phase = "night";
+  state.phaseEndTime = Date.now() + PHASE_DURATIONS.night;
+  state.nightActions = undefined;
+  state.lastAction = undefined;
+  state.voteResults = undefined;
+  state.players.forEach((p) => {
+    p.votedFor = undefined;
+    if (p.isAlive) p.ready = false;
+  });
+}
+
+// 투표 결과를 확정해 추방·승패·다음 페이즈를 결정하는 단일 진실 공급원.
+// processVote(전원 투표 완료)와 advancePhase(투표 시간 만료) 양쪽에서 호출한다.
+export function resolveVotes(gameState: GameState): GameState {
+  const newState = { ...gameState };
+  const voteCounts = tallyVotes(newState.players);
+  newState.voteResults = voteCounts;
+
+  // 최다 득표자 (동점이면 먼저 집계된 사람)
+  let maxVotes = 0;
+  let eliminatedId: string | null = null;
+  Object.entries(voteCounts).forEach(([id, count]) => {
+    if (count > maxVotes) {
+      maxVotes = count;
+      eliminatedId = id;
+    }
+  });
+
+  // 표가 없으면 아무도 추방하지 않고 다음 밤으로
+  if (!eliminatedId || maxVotes === 0) {
+    newState.history.push("아무도 추방되지 않았습니다.");
+    startNextNight(newState);
+    return newState;
+  }
+
+  const eliminated = newState.players.find((p) => p.id === eliminatedId);
+  if (!eliminated) return newState;
+
+  // 만취객을 투표로 지목하면 즉시 단독 승리 (일반 승패 판정보다 우선)
+  if (eliminated.role === "drunkard") {
+    newState.winner = "drunkard";
+    newState.status = "finished";
+    newState.phase = "ended";
+    newState.history.push(`${eliminated.name}님은 만취객이었습니다! 만취객 승리!`);
+    return newState;
+  }
+
+  eliminated.isAlive = false;
+  newState.history.push(`${eliminated.name}님이 투표로 추방되었습니다.`);
+
+  const winner = checkWinCondition(newState);
+  if (winner) {
+    newState.winner = winner;
+    newState.status = "finished";
+    newState.phase = "ended";
+    newState.history.push(winner === "citizens" ? "시민 팀 승리!" : "마피아 팀 승리!");
+  } else {
+    startNextNight(newState);
+  }
+  return newState;
+}
+
 export function processVote(
   gameState: GameState,
   voterId: string,
@@ -213,70 +295,13 @@ export function processVote(
   }
 
   voter.votedFor = targetId;
+  newState.voteResults = tallyVotes(newState.players);
 
-  // 투표 결과 집계
-  const voteCounts: Record<string, number> = {};
-  newState.players.forEach((p) => {
-    if (p.votedFor) {
-      voteCounts[p.votedFor] = (voteCounts[p.votedFor] || 0) + 1;
-    }
-  });
-
-  newState.voteResults = voteCounts;
-
-  // 모든 생존자가 투표했는지 확인
+  // 모든 생존자가 투표하면 즉시 결과 확정
   const alivePlayers = newState.players.filter((p) => p.isAlive);
-  const votedPlayers = newState.players.filter((p) => p.isAlive && p.votedFor);
-
-  if (votedPlayers.length === alivePlayers.length) {
-    // 투표 완료 - 가장 많이 받은 사람 제거
-    let maxVotes = 0;
-    let eliminatedId: string | null = null;
-
-    Object.entries(voteCounts).forEach(([id, count]) => {
-      if (count > maxVotes) {
-        maxVotes = count;
-        eliminatedId = id;
-      }
-    });
-
-    if (eliminatedId) {
-      const eliminated = newState.players.find((p) => p.id === eliminatedId);
-      if (eliminated) {
-        // 만취객 체크
-        if (eliminated.role === "drunkard") {
-          newState.winner = "drunkard";
-          newState.status = "finished";
-          newState.phase = "ended";
-          newState.history.push(`${eliminated.name}님은 만취객이었습니다! 만취객 승리!`);
-        } else {
-          eliminated.isAlive = false;
-          newState.history.push(`${eliminated.name}님이 투표로 추방되었습니다.`);
-          
-          // 승리 조건 체크
-          const winner = checkWinCondition(newState);
-          if (winner) {
-            newState.winner = winner;
-            newState.status = "finished";
-            newState.phase = "ended";
-            if (winner === "citizens") {
-              newState.history.push("시민 팀 승리!");
-            } else if (winner === "mafia") {
-              newState.history.push("마피아 팀 승리!");
-            }
-          } else {
-            // 다음 밤으로
-            newState.phase = "night";
-            newState.nightActions = undefined;
-            newState.lastAction = undefined;
-            newState.voteResults = undefined;
-            newState.players.forEach((p) => {
-              p.votedFor = undefined;
-            });
-          }
-        }
-      }
-    }
+  const votedCount = alivePlayers.filter((p) => p.votedFor).length;
+  if (votedCount === alivePlayers.length) {
+    return resolveVotes(newState);
   }
 
   return newState;

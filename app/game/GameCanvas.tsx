@@ -103,6 +103,9 @@ export default function GameCanvas({ currentPlayerId, players, nightMode, demoMo
   useEffect(() => {
     if (!mountRef.current) return;
     const mount = mountRef.current;
+    // ref 값은 cleanup 시점에 바뀔 수 있으므로 effect 진입 시점의 Map 참조를 캡처해둔다
+    const meshes = meshesRef.current;
+    const labels = labelsRef.current;
     const W = mount.clientWidth || window.innerWidth;
     const H = mount.clientHeight || window.innerHeight;
 
@@ -214,8 +217,8 @@ export default function GameCanvas({ currentPlayerId, players, nightMode, demoMo
       renderer.dispose();
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
       if (mount.contains(labelDiv)) mount.removeChild(labelDiv);
-      meshesRef.current.clear();
-      labelsRef.current.clear();
+      meshes.clear();
+      labels.clear();
       rendererRef.current = null;
     };
   }, []); // eslint-disable-line
