@@ -2,24 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { GameState } from "@/lib/types";
 import { createGame, joinGame, startGame, assignMissions, processNightAction, processNightResults, processVote, resolveVotes, PHASE_DURATIONS } from "@/lib/game-logic";
 import { missions } from "@/lib/missions";
+import { getGame, setGame, clearGame } from "@/lib/game-store";
 
-// 메모리 기반 게임 상태 저장 (실제 프로덕션에서는 데이터베이스 사용 권장)
-let gameState: GameState | null = null;
+export const dynamic = "force-dynamic";
+
+// 변경된 상태를 영속 계층에 저장한 뒤 응답한다.
+async function saveAndRespond(state: GameState, extra?: Record<string, unknown>) {
+  await setGame(state);
+  return NextResponse.json(extra ? { ...state, ...extra } : state);
+}
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const list = searchParams.get("list");
-  
+  const gameState = await getGame();
+
   // 방 목록 요청
   if (list === "true") {
     if (!gameState) {
       return NextResponse.json({ games: [] });
     }
-    
+
     const joinedPlayers = gameState.players.filter((p) => p.name !== "");
     const allJoined = joinedPlayers.length === 6;
     const gameStarted = gameState.status === "playing" && gameState.players[0]?.role !== null;
-    
+
     return NextResponse.json({
       games: [{
         gameId: gameState.gameId,
@@ -33,7 +40,7 @@ export async function GET(request: NextRequest) {
       }]
     });
   }
-  
+
   // 단일 게임 상태 요청
   if (!gameState) {
     return NextResponse.json({ error: "게임이 시작되지 않았습니다." }, { status: 200 });
@@ -45,19 +52,19 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { action, ...params } = body;
+    let gameState = await getGame();
 
     switch (action) {
       case "create": {
         try {
           const { gameId } = params;
-          
+
           if (!gameId) {
             return NextResponse.json({ error: "게임 ID가 필요합니다." }, { status: 400 });
           }
-          
+
           gameState = createGame(gameId);
-          
-          return NextResponse.json(gameState);
+          return saveAndRespond(gameState);
         } catch (error: any) {
           return NextResponse.json({ error: error.message || "게임 생성 중 오류가 발생했습니다." }, { status: 500 });
         }
@@ -70,12 +77,12 @@ export async function POST(request: NextRequest) {
         try {
           const { playerName } = params;
           const result = joinGame(gameState, playerName);
-          
+
           if (!result.success) {
             return NextResponse.json({ error: result.error }, { status: 400 });
           }
-          
-          return NextResponse.json({ ...gameState, joinedPlayerId: result.playerId });
+
+          return saveAndRespond(gameState, { joinedPlayerId: result.playerId });
         } catch (error: any) {
           return NextResponse.json({ error: error.message || "게임 참여 중 오류가 발생했습니다." }, { status: 500 });
         }
@@ -89,7 +96,7 @@ export async function POST(request: NextRequest) {
           gameState = startGame(gameState);
           // 미션 할당
           gameState.players = assignMissions(gameState.players, missions);
-          return NextResponse.json(gameState);
+          return saveAndRespond(gameState);
         } catch (error: any) {
           return NextResponse.json({ error: error.message || "게임 시작 중 오류가 발생했습니다." }, { status: 400 });
         }
@@ -109,7 +116,7 @@ export async function POST(request: NextRequest) {
             p.ready = false;
           }
         });
-        return NextResponse.json(gameState);
+        return saveAndRespond(gameState);
       }
 
       case "nightAction": {
@@ -117,7 +124,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ error: "게임이 시작되지 않았습니다." }, { status: 400 });
         }
         gameState = processNightAction(gameState, params);
-        return NextResponse.json(gameState);
+        return saveAndRespond(gameState);
       }
 
       case "endNight": {
@@ -153,7 +160,7 @@ export async function POST(request: NextRequest) {
         gameState.players.forEach((p) => {
           p.ready = false;
         });
-        return NextResponse.json(gameState);
+        return saveAndRespond(gameState);
       }
 
       case "startVoting": {
@@ -165,7 +172,7 @@ export async function POST(request: NextRequest) {
         }
         gameState.phase = "voting";
         gameState.phaseEndTime = Date.now() + PHASE_DURATIONS.voting;
-        return NextResponse.json(gameState);
+        return saveAndRespond(gameState);
       }
 
       case "vote": {
@@ -174,7 +181,7 @@ export async function POST(request: NextRequest) {
         }
         const { voterId, targetId } = params;
         gameState = processVote(gameState, voterId, targetId);
-        return NextResponse.json(gameState);
+        return saveAndRespond(gameState);
       }
 
       case "ready": {
@@ -186,7 +193,7 @@ export async function POST(request: NextRequest) {
         if (player) {
           player.ready = true;
         }
-        return NextResponse.json(gameState);
+        return saveAndRespond(gameState);
       }
 
       // 타이머 만료 시 자동으로 다음 페이즈로 전환
@@ -222,11 +229,11 @@ export async function POST(request: NextRequest) {
           gameState = resolveVotes(gameState);
         }
 
-        return NextResponse.json(gameState);
+        return saveAndRespond(gameState);
       }
 
       case "reset": {
-        gameState = null;
+        await clearGame();
         return NextResponse.json({ message: "게임이 리셋되었습니다." });
       }
 

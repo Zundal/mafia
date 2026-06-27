@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getPositions, setPosition } from "@/lib/game-store";
 
 export const dynamic = "force-dynamic";
 
-const positions = new Map<string, { x: number; y: number }>();
-
 export async function GET() {
-  const result: Record<string, { x: number; y: number }> = {};
-  positions.forEach((pos, id) => { result[id] = pos; });
-  return NextResponse.json(result);
+  const positions = await getPositions();
+  return NextResponse.json(positions);
 }
 
 export async function POST(req: NextRequest) {
   const { playerId, x, y } = await req.json();
   if (!playerId) return NextResponse.json({ error: "playerId required" }, { status: 400 });
-  positions.set(String(playerId), { x: Number(x), y: Number(y) });
+  await setPosition(String(playerId), Number(x), Number(y));
   return NextResponse.json({ ok: true });
 }

@@ -68,11 +68,14 @@ public/
 
 ### 상태 관리 — 가장 중요한 점
 
-- **게임 상태는 `app/api/game/route.ts`의 모듈 스코프 변수 `gameState` 하나에만 존재합니다** (`let gameState: GameState | null`). 데이터베이스가 없는 **인메모리 단일 게임** 구조입니다.
-- 따라서 **동시에 진행 가능한 게임은 하나뿐**이며, 서버리스 함수 콜드 스타트/재배포 시 상태가 초기화됩니다. 이는 "한 폰을 돌려가며 하는 오프라인 게임"이라는 의도에 부합하는 설계입니다.
-- 영속성·멀티룸·동시성이 필요해지면 `route.ts`의 모듈 변수를 외부 스토어(예: Vercel Marketplace의 Redis/Postgres)로 교체해야 합니다. 이 한 곳이 교체 지점입니다.
+- **모든 상태는 `lib/game-store.ts`의 영속 계층을 통해서만 접근합니다.** 라우트는 더 이상 모듈 변수를 직접 들지 않고 `getGame()`/`setGame()`/`clearGame()`, `getPositions()`/`setPosition()`을 호출합니다. 이 한 파일이 **유일한 교체 지점**입니다.
+- **백엔드는 환경변수로 자동 선택**됩니다:
+  - `KV_REST_API_URL`+`KV_REST_API_TOKEN`(Vercel KV) 또는 `UPSTASH_REDIS_REST_URL`+`_TOKEN`(Upstash)이 있으면 → **Redis(REST)** 로 영속화.
+  - 없으면 → **인메모리 폴백**(모듈 스코프 변수/Map). 단일 인스턴스·재배포 시 소실되는, 기존과 동일한 동작.
+- 영속화를 켜려면 코드 변경 없이 Vercel Marketplace에서 KV/Upstash를 연결해 위 환경변수가 주입되게만 하면 됩니다.
+- ⚠️ 인메모리 폴백은 여전히 **동시 게임 1개**이고 서버리스에서 인스턴스마다 상태가 갈릴 수 있습니다. 실멀티플레이가 필요하면 KV를 연결하세요.
 - 클라이언트(`app/game/page.tsx` 등)는 폴링으로 `GET /api/game`을 호출해 상태를 동기화합니다.
-- **두 번째 인메모리 스토어**: `app/api/positions/route.ts`도 모듈 스코프 `Map<playerId, {x,y}>`로 게임 월드 좌표를 보관합니다(게임 로직 상태와는 별개, `force-dynamic`). 같은 휘발성 한계를 가집니다.
+- 게임 월드 좌표(`positions`)도 같은 `game-store`를 통해 저장됩니다(게임 로직 상태와는 별개 키).
 - **페이즈 타이머**: `GameState.phaseEndTime`(Unix ms)이 현재 페이즈의 자동 전환 시각입니다. 서버는 `PHASE_DURATIONS`(night 60s / day 120s / voting 90s)로 설정하고, 클라이언트가 만료 시 `advancePhase` 액션으로 전환을 트리거합니다. ⚠️ `Date.now()` 기반이라 서버리스에서 시계가 인스턴스마다 다를 수 있음에 유의.
 
 ### 핵심 흐름: 액션 디스패치
