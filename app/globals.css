@@ -4,25 +4,50 @@
 
 @layer base {
   :root {
-    --background: 20 25% 4%;
-    --foreground: 35 20% 92%;
-    --card: 15 20% 7%;
-    --card-foreground: 35 20% 92%;
-    --popover: 20 25% 4%;
-    --popover-foreground: 35 20% 92%;
-    --primary: 0 65% 45%;
-    --primary-foreground: 35 25% 95%;
-    --secondary: 15 15% 12%;
-    --secondary-foreground: 35 15% 80%;
-    --muted: 15 15% 12%;
-    --muted-foreground: 20 8% 55%;
-    --accent: 43 88% 52%;
-    --accent-foreground: 20 25% 4%;
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 35 20% 92%;
-    --border: 15 12% 13%;
-    --input: 15 12% 12%;
-    --ring: 43 88% 52%;
+    /* ── 촛불 누아르 팔레트 (raw) ───────────────────────────────── */
+    --bg: #14100B;
+    --bg-deep: #0D0A06;
+    --surface: #1B1510;
+    --surface-2: #241C14;
+    --candle: #E8B864;       /* 앰버 광원 = 액센트 */
+    --candle-soft: #C99A52;
+    --wine: #8C1C24;         /* 시그니처 */
+    --wine-bright: #B33340;  /* active/hover */
+    --ink: #E9DEC9;          /* 파치먼트 본문 */
+    --ink-muted: #A89478;
+    --ink-faint: #6E6150;
+    --line: rgba(233, 222, 201, 0.10);   /* 따뜻한 중립 헤어라인 */
+    --line-strong: rgba(233, 222, 201, 0.16);
+    /* 팀 */
+    --team-citizen: #86B07C;
+    --team-mafia: #C2495A;
+    --team-drunkard: #E8B864;
+
+    /* ── 폰트 ───────────────────────────────────────────────────── */
+    --font-display: 'Gowun Batang', 'Nanum Myeongjo', serif;
+    --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+    /* ── shadcn HSL 매핑 ────────────────────────────────────────── */
+    --background: 39 29% 6%;
+    --foreground: 40 46% 85%;
+    --card: 33 26% 8%;
+    --card-foreground: 40 46% 85%;
+    --popover: 39 29% 6%;
+    --popover-foreground: 40 46% 85%;
+    --primary: 355 67% 33%;
+    --primary-foreground: 40 46% 92%;
+    --secondary: 35 20% 12%;
+    --secondary-foreground: 40 30% 80%;
+    --muted: 35 18% 12%;
+    --muted-foreground: 38 16% 56%;
+    --accent: 38 75% 65%;
+    --accent-foreground: 39 29% 6%;
+    --destructive: 355 60% 42%;
+    --destructive-foreground: 40 46% 92%;
+    --border: 38 18% 16%;
+    --input: 38 16% 14%;
+    --ring: 38 75% 60%;
     --radius: 0.75rem;
   }
 }
@@ -33,10 +58,33 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    font-family: var(--font-body);
     overflow-x: hidden;
-    /* 배경 기본 색 */
-    background-color: #0c0704;
+    background-color: var(--bg);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* 디스플레이(명조) — 제목 전용, 절제해서 사용 */
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  /* 라벨/아이브로 — mono, 대문자, 넓은 자간 */
+  .eyebrow {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--ink-faint);
+  }
+  /* 숫자/데이터 — mono + tabular */
+  .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -52,47 +100,46 @@ body::after {
   background-size: 280px 280px;
 }
 
-/* ── Glassmorphism ────────────────────────────────────────────────────────── */
+/* ── 표면 (glass/card/panel) ──────────────────────────────────────────────── */
 .glass {
-  background: rgba(22, 11, 8, 0.82);
+  background: rgba(27, 21, 16, 0.72);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(160, 100, 60, 0.14);
+  border: 1px solid var(--line);
 }
 
 .glass-light {
-  background: rgba(255, 210, 160, 0.05);
+  background: rgba(233, 222, 201, 0.04);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(180, 130, 80, 0.10);
+  border: 1px solid var(--line);
 }
 
 .glass-card {
-  background: rgba(22, 10, 7, 0.88);
+  background: rgba(27, 21, 16, 0.82);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(160, 100, 60, 0.18);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 200, 140, 0.06);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(233, 222, 201, 0.05);
 }
 
 /* 종이/카드 질감 */
 .paper-card {
-  background: #0f0806;
-  border: 1px solid rgba(140, 90, 50, 0.22);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
   box-shadow:
-    0 2px 0 rgba(255, 200, 130, 0.04) inset,
+    0 1px 0 rgba(233, 222, 201, 0.04) inset,
     0 -1px 0 rgba(0, 0, 0, 0.4) inset,
-    0 8px 40px rgba(0, 0, 0, 0.7),
-    0 2px 8px rgba(0, 0, 0, 0.5);
+    0 12px 48px rgba(0, 0, 0, 0.6);
 }
 
 /* 어두운 패널 (밤 페이즈 등) */
 .panel-dark {
-  background: rgba(10, 5, 3, 0.92);
+  background: rgba(13, 10, 6, 0.92);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-  border-top: 1px solid rgba(140, 80, 50, 0.2);
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 180, 100, 0.05);
+  border-top: 1px solid var(--line-strong);
+  box-shadow: 0 -10px 48px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(233, 222, 201, 0.05);
 }
 
 @layer utilities {
@@ -110,9 +157,17 @@ button, a {
   touch-action: manipulation;
 }
 
-/* ── 텍스트 글로우 ────────────────────────────────────────────────────────── */
+/* ── 텍스트 글로우 (절제) ─────────────────────────────────────────────────── */
 .text-glow-gold {
-  text-shadow: 0 0 24px rgba(210, 150, 40, 0.7), 0 0 48px rgba(210, 150, 40, 0.3);
+  text-shadow: 0 0 28px rgba(232, 184, 100, 0.45), 0 0 64px rgba(232, 184, 100, 0.15);
+}
+
+.text-glow-candle {
+  text-shadow: 0 0 28px rgba(232, 184, 100, 0.4), 0 0 70px rgba(232, 184, 100, 0.14);
+}
+
+.text-glow-wine {
+  text-shadow: 0 0 26px rgba(179, 51, 64, 0.45), 0 0 60px rgba(140, 28, 36, 0.2);
 }
 
 .text-glow-cyan {
@@ -164,7 +219,7 @@ button, a {
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(140, 90, 50, 0.4), transparent);
+  background: linear-gradient(to right, transparent, rgba(201, 154, 82, 0.35), transparent);
 }
 
 /* ── 스피너 ───────────────────────────────────────────────────────────────── */
@@ -175,8 +230,8 @@ button, a {
 .spinner {
   width: 36px;
   height: 36px;
-  border: 3px solid rgba(180, 120, 30, 0.15);
-  border-top-color: #c89030;
+  border: 2px solid rgba(232, 184, 100, 0.14);
+  border-top-color: var(--candle);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -310,51 +365,86 @@ button, a {
 ::-webkit-scrollbar { width: 3px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(180, 120, 50, 0.25);
+  background: rgba(201, 154, 82, 0.22);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(180, 120, 50, 0.45);
+  background: rgba(201, 154, 82, 0.4);
 }
 
 /* ── 자동완성 ─────────────────────────────────────────────────────────────── */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #e8d5b0;
-  -webkit-box-shadow: 0 0 0px 1000px rgba(20, 10, 6, 0.9) inset;
+  -webkit-text-fill-color: #e9dec9;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(27, 21, 16, 0.95) inset;
   transition: background-color 5000s ease-in-out 0s;
 }
 
 /* ── 구분선 그라데이션 ────────────────────────────────────────────────────── */
 .divider-glow {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(180, 120, 50, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(201, 154, 82, 0.35), transparent);
 }
 
 /* ── 용의자 카드 (투표) ───────────────────────────────────────────────────── */
 .suspect-card {
-  background: rgba(18, 9, 6, 0.85);
-  border: 1px solid rgba(130, 80, 50, 0.2);
+  background: rgba(27, 21, 16, 0.7);
+  border: 1px solid var(--line);
   transition: all 0.2s ease;
 }
 
 .suspect-card:hover {
-  border-color: rgba(180, 110, 60, 0.45);
-  background: rgba(25, 12, 7, 0.9);
+  border-color: rgba(201, 154, 82, 0.4);
+  background: rgba(36, 28, 20, 0.85);
   transform: translateY(-1px);
   box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 
 .suspect-card.selected {
-  border-color: rgba(220, 80, 60, 0.7);
-  background: rgba(80, 15, 10, 0.5);
-  box-shadow: 0 0 20px rgba(200, 60, 40, 0.25), 0 4px 24px rgba(0,0,0,0.6);
+  border-color: rgba(179, 51, 64, 0.65);
+  background: rgba(76, 18, 22, 0.45);
+  box-shadow: 0 0 22px rgba(140, 28, 36, 0.3), 0 4px 24px rgba(0,0,0,0.6);
 }
 
 /* ── 인비테이션 카드 (설정 화면) ──────────────────────────────────────────── */
 .invite-card {
-  background: linear-gradient(145deg, #0f0806 0%, #120a07 100%);
-  border: 1px solid rgba(160, 100, 55, 0.2);
-  box-shadow: 0 2px 0 rgba(255,200,130,0.04) inset, 0 8px 32px rgba(0,0,0,0.6);
+  background: linear-gradient(145deg, var(--surface) 0%, var(--bg-deep) 100%);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 1px 0 rgba(233,222,201,0.04) inset, 0 12px 40px rgba(0,0,0,0.55);
+}
+
+/* ── 와인 CTA (시그니처 버튼) ─────────────────────────────────────────────── */
+.btn-wine {
+  background: linear-gradient(145deg, #6E141B, var(--wine));
+  color: #F4E4D0;
+  border: 1px solid rgba(179, 51, 64, 0.4);
+  box-shadow: 0 8px 28px rgba(110, 20, 27, 0.4), inset 0 1px 0 rgba(255, 220, 200, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+.btn-wine:hover {
+  box-shadow: 0 10px 34px rgba(140, 28, 36, 0.5), inset 0 1px 0 rgba(255, 220, 200, 0.1);
+}
+.btn-wine:active { transform: scale(0.985); }
+
+/* ── 고스트/세컨더리 버튼 ─────────────────────────────────────────────────── */
+.btn-ghost {
+  background: rgba(27, 21, 16, 0.6);
+  color: var(--ink-muted);
+  border: 1px solid var(--line);
+  transition: all 0.18s ease;
+}
+.btn-ghost:hover {
+  border-color: rgba(201, 154, 82, 0.35);
+  color: var(--ink);
+  background: rgba(36, 28, 20, 0.7);
+}
+
+/* ── 모션 줄이기 ──────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
