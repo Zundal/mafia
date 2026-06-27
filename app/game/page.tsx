@@ -9,6 +9,7 @@ import RoleCard from "@/app/components/RoleCard";
 import VotePanel from "@/app/components/VotePanel";
 import MissionCard from "@/app/components/MissionCard";
 import MusicPlayer from "@/app/components/MusicPlayer";
+import CollapsiblePanel from "@/app/components/CollapsiblePanel";
 import { ToastContainer, toast } from "@/app/components/Toast";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -436,6 +437,28 @@ function GamePageContent() {
     };
     const rs = currentPlayer?.role ? (roleStyle[currentPlayer.role] ?? roleStyle.doctor) : roleStyle.doctor;
 
+    const investigation =
+      currentPlayer?.role === "police" && gameState.nightActions?.investigate?.playerId === currentPlayerId
+        ? gameState.nightActions.investigate
+        : null;
+    const nightPeek = !canAct ? (
+      <span>😴 잠든 척 · 지도를 자유롭게 이동하세요</span>
+    ) : done ? (
+      investigation ? (
+        <span style={{ color: investigation.result ? '#f08878' : '#80e8a8' }}>
+          {investigation.result ? '🚨 조사 결과: 범인입니다!' : '✅ 조사 결과: 범인이 아닙니다'}
+        </span>
+      ) : (
+        <span>✓ 완료 · 다른 사람 대기 중 ({readyCount}/{needsAction.length})</span>
+      )
+    ) : (
+      <span>
+        {currentPlayer?.role === "mafia" && "🍷 제거할 대상을 선택하세요"}
+        {currentPlayer?.role === "police" && "🕵️ 조사할 사람을 선택하세요"}
+        {currentPlayer?.role === "doctor" && "🧹 보호할 사람을 선택하세요"}
+      </span>
+    );
+
     return (
       <div className="fixed inset-0 overflow-hidden" style={{ background: '#040204' }}>
         <ToastContainer />
@@ -452,10 +475,7 @@ function GamePageContent() {
         </div>
 
         {/* 하단 액션 패널 */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 panel-dark rounded-t-3xl max-h-[54vh] overflow-y-auto pb-safe">
-          <div className="p-4 space-y-3">
-            <div className="w-8 h-0.5 rounded-full mx-auto mb-2" style={{ background: 'rgba(160,100,60,0.3)' }} />
-
+        <CollapsiblePanel peek={nightPeek} maxHeightClass="max-h-[54vh]">
             {currentPlayer?.mission && <MissionCard mission={currentPlayer.mission} />}
 
             {canAct ? (
@@ -506,7 +526,7 @@ function GamePageContent() {
                       <button
                         key={player.id}
                         onClick={() => setSelectedPlayerId(player.id)}
-                        className={cn("p-3 rounded-xl text-sm font-medium transition-all active:scale-95")}
+                        className={cn("min-h-[52px] px-3 py-3.5 rounded-xl text-sm font-medium transition-all active:scale-95")}
                         style={{
                           background: selectedPlayerId === player.id
                             ? 'linear-gradient(to right, #8a2020, #b02828)'
@@ -573,17 +593,16 @@ function GamePageContent() {
             <button
               onClick={() => apiPost({ action: "endNight" })}
               disabled={!allReady}
-              className="w-full py-3 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
+              className="w-full py-3 rounded-xl font-semibold text-sm transition-all"
               style={{
-                background: allReady ? 'linear-gradient(to right, #3a1a6a, #5a2a9a)' : 'rgba(25,15,8,0.6)',
-                color: allReady ? '#d8c0f8' : 'rgba(140,100,60,0.5)',
-                border: `1px solid ${allReady ? 'rgba(120,70,200,0.3)' : 'rgba(100,65,35,0.15)'}`,
+                background: allReady ? 'linear-gradient(to right, #3a1a6a, #5a2a9a)' : 'rgba(40,26,14,0.85)',
+                color: allReady ? '#d8c0f8' : 'rgba(190,150,100,0.75)',
+                border: `1px solid ${allReady ? 'rgba(120,70,200,0.3)' : 'rgba(140,95,50,0.3)'}`,
               }}
             >
               {allReady ? '밤 페이즈 종료' : `대기 중... (${readyCount}/${needsAction.length})`}
             </button>
-          </div>
-        </div>
+        </CollapsiblePanel>
         <MusicPlayer />
       </div>
     );
@@ -607,9 +626,20 @@ function GamePageContent() {
         </div>
 
         {/* 하단 패널 */}
-        <div className="absolute bottom-0 left-0 right-0 z-10 panel-dark rounded-t-3xl max-h-[48vh] overflow-y-auto pb-safe">
-          <div className="p-4 space-y-3">
-            <div className="w-8 h-0.5 rounded-full mx-auto mb-2" style={{ background: 'rgba(160,110,60,0.3)' }} />
+        <CollapsiblePanel
+          peek={<span>🗣️ 토론 시간 · 🗳️ 준비되면 투표 시작</span>}
+          maxHeightClass="max-h-[52vh]"
+        >
+            {/* 토론 안내 */}
+            <div
+              className="rounded-xl px-3 py-2.5 text-center"
+              style={{ background: 'rgba(40,26,12,0.6)', border: '1px solid rgba(170,120,50,0.22)' }}
+            >
+              <p className="text-sm font-semibold" style={{ color: '#e0c088' }}>🗣️ 토론 시간</p>
+              <p className="text-xs mt-0.5" style={{ color: 'rgba(160,120,70,0.7)' }}>
+                자유롭게 이야기하며 범인을 추리하세요
+              </p>
+            </div>
 
             {/* 아침 뉴스 */}
             <div
@@ -662,10 +692,6 @@ function GamePageContent() {
               </div>
             </div>
 
-            <p className="text-xs text-center" style={{ color: 'rgba(120,85,50,0.5)' }}>
-              지도를 돌아다니며 수상한 사람을 찾아보세요
-            </p>
-
             <button
               onClick={() => apiPost({ action: "startVoting" })}
               className="w-full py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98]"
@@ -677,8 +703,7 @@ function GamePageContent() {
             >
               🗳️ 투표 시작
             </button>
-          </div>
-        </div>
+        </CollapsiblePanel>
         <MusicPlayer />
       </div>
     );
