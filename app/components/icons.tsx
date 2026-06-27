@@ -168,6 +168,14 @@ export const Book = (p: IconProps) => (
   </svg>
 );
 
+/** 와인병 — 만취객 */
+export const Bottle = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M10 2h4v3.5l1.5 2.5a4 4 0 0 1 .5 2V20a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a4 4 0 0 1 .5-2L10 5.5V2Z" />
+    <path d="M8.2 13h7.6" />
+  </svg>
+);
+
 /** 나침반 — 혼자 탐험 */
 export const Compass = (p: IconProps) => (
   <svg {...base(p)}>
@@ -175,3 +183,12 @@ export const Compass = (p: IconProps) => (
     <path d="m15 9-2 4-4 2 2-4 4-2Z" />
   </svg>
 );
+
+/** 역할 → 라인 아이콘 매핑 */
+export const roleGlyph: Record<string, (p: IconProps) => JSX.Element> = {
+  mafia: WineGlass,
+  police: Search,
+  doctor: Shield,
+  citizen: Users,
+  drunkard: Bottle,
+};
