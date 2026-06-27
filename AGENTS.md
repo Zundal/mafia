@@ -6,9 +6,10 @@
 
 ## 빠른 요약
 
-- **프로젝트**: 6인용 마피아 게임 웹앱 "집들이 미스터리: 깨진 와인병의 비밀". Next.js 14 App Router + TypeScript + Tailwind, Vercel 배포, PWA.
-- **패키지 매니저**: **Bun** 선호 (`bun install`, `bun run dev`, `bun run build`, `bun run lint`).
-- **상태**: 데이터베이스 없음. 게임 상태는 `app/api/game/route.ts`의 모듈 변수 하나(`gameState`)에 인메모리로 저장 — 동시 게임 1개, 재배포 시 초기화. 의도된 설계.
+- **프로젝트**: 6인용 마피아 게임 웹앱 "집들이 미스터리: 깨진 와인병의 비밀". Next.js 14 App Router + TypeScript + Tailwind + shadcn/ui, Three.js 게임 월드(`app/game/GameCanvas.tsx`), Vercel 배포, PWA.
+- **패키지 매니저**: **Bun** 선호 (`bun install`, `bun run dev`, `bun run build`, `bun run lint`). `vercel.json`도 Bun 사용.
+- **상태**: 데이터베이스 없음. 게임 상태는 `app/api/game/route.ts`의 모듈 변수(`gameState`), 월드 좌표는 `app/api/positions/route.ts`의 모듈 `Map`에 인메모리 저장 — 동시 게임 1개, 재배포 시 초기화. 의도된 설계.
+- **페이즈 타이머**: `phaseEndTime` + `advancePhase` 액션으로 자동 전환. ⚠️ `advancePhase`의 투표 만료 로직은 `processVote`를 복제하므로 투표 규칙 변경 시 두 곳을 함께 수정.
 - **로직 분리**: 순수 게임 규칙은 `lib/game-logic.ts`, HTTP 디스패치·검증은 `app/api/game/route.ts`의 `switch (action)`.
 - **타입**: 상태 형태는 `lib/types.ts`의 `GameState`/`Player`가 기준.
 - **규칙 정본**: 게임 도메인 규칙은 `.cursor/rules/basic.mdc`.

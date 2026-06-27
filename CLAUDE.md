@@ -9,8 +9,9 @@
 
 - **유형**: Next.js 14 (App Router) 기반 PWA
 - **언어**: TypeScript (strict)
-- **스타일**: Tailwind CSS
-- **배포**: Vercel
+- **스타일**: Tailwind CSS + shadcn/ui (`components/ui/`, Radix + CVA + `lib/utils.ts`의 `cn`)
+- **3D**: Three.js — `app/game/GameCanvas.tsx`의 Among Us 스타일 아파트 게임 월드
+- **배포**: Vercel (`vercel.json`: 빌드/설치 모두 Bun, region `icn1`)
 - **UI 언어**: 모든 사용자 노출 문자열은 한국어
 
 ## 명령어
@@ -36,20 +37,26 @@ bun run generate-icons   # scripts/generate-icons.js — PWA 아이콘 생성
 app/
 ├── api/
 │   ├── game/route.ts      # 게임 상태 단일 진실 공급원 (모든 액션의 진입점)
-│   └── missions/route.ts  # 미션 목록 반환
+│   ├── missions/route.ts  # 미션 목록 반환
+│   └── positions/route.ts # 게임 월드 내 플레이어 좌표 동기화 (별도 인메모리 Map)
 ├── components/            # 클라이언트 React 컴포넌트
 │   ├── MusicPlayer.tsx
 │   ├── ServiceWorkerRegistration.tsx
+│   ├── Toast.tsx
 │   ├── VotePanel.tsx / MissionCard.tsx / PhaseIndicator.tsx / RoleCard.tsx
 ├── page.tsx               # 메인(로비/방 생성·참여)
 ├── join/page.tsx          # 참여
-├── game/page.tsx          # 게임 진행 화면 (가장 큰 클라이언트 로직, ~850줄)
+├── game/page.tsx          # 게임 진행 화면 (가장 큰 클라이언트 로직)
+├── game/GameCanvas.tsx    # Three.js 게임 월드 (아파트 맵 이동)
+├── demo/page.tsx          # 혼자 해보기(데모 탐험) 모드
 ├── story/page.tsx         # 스토리/규칙 소개
 └── layout.tsx             # 루트 레이아웃 + PWA 메타데이터
+components/ui/             # shadcn/ui 프리미티브 (button, card, input, badge, separator)
 lib/
 ├── types.ts               # 핵심 타입 (Role, Phase, GameState, Player 등)
 ├── roles.ts               # 역할 정의 + roleDistribution(6인 역할 배분)
 ├── missions.ts            # 히든 미션 문자열 배열
+├── utils.ts               # cn() — clsx + tailwind-merge
 └── game-logic.ts          # 순수 게임 규칙 함수 (상태 머신의 핵심)
 public/
 ├── data/                  # roles.json / missions.json / game-state.json (정적 데이터)
@@ -57,12 +64,16 @@ public/
 ├── manifest.json, sw.js   # PWA 매니페스트 & 서비스 워커
 ```
 
+> shadcn/ui는 관례상 `app/`이 아닌 **루트 `components/ui/`**에 위치합니다(`components.json` 설정). 게임 전용 컴포넌트는 `app/components/`에 있습니다 — 두 위치를 혼동하지 마세요.
+
 ### 상태 관리 — 가장 중요한 점
 
 - **게임 상태는 `app/api/game/route.ts`의 모듈 스코프 변수 `gameState` 하나에만 존재합니다** (`let gameState: GameState | null`). 데이터베이스가 없는 **인메모리 단일 게임** 구조입니다.
 - 따라서 **동시에 진행 가능한 게임은 하나뿐**이며, 서버리스 함수 콜드 스타트/재배포 시 상태가 초기화됩니다. 이는 "한 폰을 돌려가며 하는 오프라인 게임"이라는 의도에 부합하는 설계입니다.
 - 영속성·멀티룸·동시성이 필요해지면 `route.ts`의 모듈 변수를 외부 스토어(예: Vercel Marketplace의 Redis/Postgres)로 교체해야 합니다. 이 한 곳이 교체 지점입니다.
 - 클라이언트(`app/game/page.tsx` 등)는 폴링으로 `GET /api/game`을 호출해 상태를 동기화합니다.
+- **두 번째 인메모리 스토어**: `app/api/positions/route.ts`도 모듈 스코프 `Map<playerId, {x,y}>`로 게임 월드 좌표를 보관합니다(게임 로직 상태와는 별개, `force-dynamic`). 같은 휘발성 한계를 가집니다.
+- **페이즈 타이머**: `GameState.phaseEndTime`(Unix ms)이 현재 페이즈의 자동 전환 시각입니다. 서버는 `PHASE_DURATIONS`(night 60s / day 120s / voting 90s)로 설정하고, 클라이언트가 만료 시 `advancePhase` 액션으로 전환을 트리거합니다. ⚠️ `Date.now()` 기반이라 서버리스에서 시계가 인스턴스마다 다를 수 있음에 유의.
 
 ### 핵심 흐름: 액션 디스패치
 
@@ -73,13 +84,16 @@ public/
 | `create` | `createGame` | 빈 슬롯 6개로 새 게임 생성 |
 | `join` | `joinGame` | 빈 슬롯에 이름 배정, 중복/만석 검증 |
 | `startGame` | `startGame` + `assignMissions` | 역할 셔플·배정 + 미션 배정 |
-| `startNight` | (route 내부) | night 페이즈 진입, ready 초기화 |
+| `startNight` | (route 내부) | night 페이즈 진입, ready·타이머 초기화 |
 | `nightAction` | `processNightAction` | kill/investigate/protect 등록 |
-| `endNight` | `processNightResults` | 능력자 전원 ready 확인 후 밤 결과 정산 → day |
+| `endNight` | `processNightResults` | 능력자 전원 ready **또는 타이머 만료** 시 밤 결과 정산 → day |
 | `startVoting` | (route 내부) | voting 페이즈 진입 |
 | `vote` | `processVote` | 투표 집계, 전원 투표 시 추방·승패 판정 |
 | `ready` | (route 내부) | 플레이어 준비 표시 |
+| `advancePhase` | (route 내부) | 타이머 만료 시 다음 페이즈로 강제 전환(night→day→voting→…). 미행동/미투표는 건너뜀 |
 | `reset` | (route 내부) | `gameState = null` |
+
+> ⚠️ **로직 중복 주의**: `advancePhase`의 투표 만료 처리는 `processVote`의 추방·승패 판정 로직을 route 안에 **복제**하고 있습니다(만취객 우선 승리, `checkWinCondition` 등). 투표 규칙을 바꾸면 `lib/game-logic.ts`의 `processVote`와 `route.ts`의 `advancePhase` **두 곳**을 함께 고쳐야 합니다. 향후 이 로직을 순수 함수(`resolveVotes`)로 추출하면 중복이 사라집니다.
 
 ### 게임 규칙(도메인 로직)
 

@@ -27,7 +27,9 @@ model: sonnet
 5. **보호 판정**: `processNightResults`에서 `killTarget === protectTarget`이면 사망 무효.
 6. **밤 액션 권한 검증**: kill=mafia만, investigate=police만, protect=doctor만. `processNightAction`의 role 가드가 유지돼야 함.
 7. **페이즈 전이**: setup → night → day → voting → (night | ended). 새 페이즈/액션 추가 시 `Phase` 타입, `route.ts`의 switch, 클라이언트(`app/game/page.tsx`)가 함께 갱신됐는지.
-8. **ready 게이트**: `endNight`는 생존 능력자(mafia/police/doctor) 전원의 `ready`가 true여야 정산.
+8. **ready 게이트**: `endNight`는 생존 능력자(mafia/police/doctor) 전원의 `ready`가 true여야 정산(단, `phaseEndTime` 타이머 만료 시 강제 정산 허용).
+9. **투표 로직 중복**: `processVote`(game-logic.ts)와 `advancePhase`의 voting 만료 분기(route.ts)가 추방·승패 판정을 **이중으로** 구현. 투표 규칙 변경은 **두 곳 모두** 반영돼야 함. 한쪽만 고쳤다면 위반으로 지적할 것.
+10. **페이즈 타이머**: `startNight`/`endNight`/`startVoting`/`advancePhase`가 `phaseEndTime`을 `PHASE_DURATIONS`(night 60s/day 120s/voting 90s)로 일관되게 설정하는지.
 
 ## 절차
 
