@@ -14,6 +14,10 @@ import { ToastContainer, toast } from "@/app/components/Toast";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import {
+  Clock, Gavel, Scroll, Copy, Check, Users, Mask,
+  ArrowLeft, Search, WineGlass, Bottle, roleGlyph,
+} from "@/app/components/icons";
 import type { PlayerData } from "@/app/game/GameCanvas";
 
 const GameCanvas = dynamic(() => import("@/app/game/GameCanvas"), { ssr: false });
@@ -23,17 +27,17 @@ function LoadingScreen() {
   return (
     <div
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
-      style={{ background: '#0c0704' }}
+      style={{ background: 'var(--bg-deep)' }}
     >
       <div className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 40%, rgba(100,30,10,0.2) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 40%, rgba(140,28,36,0.16) 0%, transparent 70%)' }}
       />
       <div className="relative text-center animate-fade-in-up">
         <div className="flex justify-center mb-5">
           <div className="spinner" />
         </div>
-        <p style={{ color: '#c8a878' }} className="text-base font-medium mb-1">게임을 불러오는 중...</p>
-        <p style={{ color: 'rgba(140,95,55,0.6)' }} className="text-sm">잠시만 기다려주세요</p>
+        <p style={{ color: 'var(--ink-muted)' }} className="text-base font-medium mb-1">게임을 불러오는 중...</p>
+        <p style={{ color: 'var(--ink-faint)' }} className="text-sm">잠시만 기다려주세요</p>
       </div>
     </div>
   );
@@ -67,29 +71,31 @@ function PhaseTimer({ phaseEndTime, phase }: { phaseEndTime?: number; phase: str
         isUrgent ? "animate-pulse" : ""
       )}
       style={{
-        background: isUrgent ? 'rgba(180,30,20,0.12)' : isWarn ? 'rgba(160,80,20,0.10)' : 'rgba(20,10,6,0.6)',
-        border: `1px solid ${isUrgent ? 'rgba(220,60,40,0.35)' : isWarn ? 'rgba(200,110,40,0.3)' : 'rgba(120,75,40,0.2)'}`,
+        background: isUrgent ? 'rgba(140,28,36,0.14)' : isWarn ? 'rgba(232,184,100,0.08)' : 'rgba(13,10,6,0.6)',
+        border: `1px solid ${isUrgent ? 'rgba(179,51,64,0.4)' : isWarn ? 'rgba(232,184,100,0.28)' : 'var(--line-strong)'}`,
       }}
     >
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-medium" style={{ color: 'rgba(160,110,60,0.8)' }}>⏱ 제한 시간</span>
+        <span className="eyebrow inline-flex items-center gap-1.5" style={{ color: 'var(--ink-faint)' }}>
+          <Clock size={13} /> 제한 시간
+        </span>
         <span
-          className="font-bold text-sm tabular-nums"
-          style={{ color: isUrgent ? '#f87060' : isWarn ? '#e89040' : '#c8a060' }}
+          className="num font-bold text-sm"
+          style={{ color: isUrgent ? 'var(--wine-bright)' : isWarn ? 'var(--candle)' : 'var(--candle-soft)' }}
         >
           {timeLeft === 0 ? '시간 초과!' : mins > 0 ? `${mins}:${String(secs).padStart(2, '0')}` : `${secs}초`}
         </span>
       </div>
-      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(233,222,201,0.06)' }}>
         <div
           className="h-full rounded-full transition-all duration-500"
           style={{
             width: `${pct}%`,
             background: isUrgent
-              ? 'linear-gradient(to right, #e03020, #f05040)'
+              ? 'linear-gradient(to right, var(--wine), var(--wine-bright))'
               : isWarn
-              ? 'linear-gradient(to right, #d07020, #e09030)'
-              : 'linear-gradient(to right, #b08030, #d0a040)',
+              ? 'linear-gradient(to right, var(--candle-soft), var(--candle))'
+              : 'linear-gradient(to right, var(--candle-soft), var(--candle))',
           }}
         />
       </div>
@@ -107,11 +113,11 @@ function BackButton({ onClick }: { onClick: () => void }) {
     <button
       onClick={onClick}
       className="mb-5 text-sm transition-colors flex items-center gap-1.5"
-      style={{ color: 'rgba(160,110,60,0.6)' }}
-      onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(200,150,80,0.9)')}
-      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(160,110,60,0.6)')}
+      style={{ color: 'var(--ink-faint)' }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--ink-muted)')}
+      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--ink-faint)')}
     >
-      ← 홈으로
+      <ArrowLeft size={16} /> 홈으로
     </button>
   );
 }
@@ -187,15 +193,14 @@ function GamePageContent() {
 
   if (!gameState) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden" style={{ background: '#0c0704' }}>
+      <div className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden" style={{ background: 'var(--bg-deep)' }}>
         <div className="relative text-center animate-fade-in-up max-w-sm">
-          <div className="text-5xl mb-5 opacity-40">🔍</div>
-          <p className="text-xl font-bold mb-3" style={{ color: '#d4a070' }}>게임을 찾을 수 없습니다</p>
-          <p className="text-sm mb-6" style={{ color: 'rgba(140,100,55,0.7)' }}>게임이 생성되지 않았거나 초기화되었습니다.</p>
+          <Search size={44} className="mx-auto mb-5" style={{ color: 'var(--ink-faint)' }} />
+          <p className="font-display text-xl mb-3" style={{ color: 'var(--ink)' }}>게임을 찾을 수 없습니다</p>
+          <p className="text-sm mb-6" style={{ color: 'var(--ink-muted)' }}>게임이 생성되지 않았거나 초기화되었습니다.</p>
           <button
             onClick={() => router.push("/")}
-            className="px-8 py-3 rounded-2xl font-semibold"
-            style={{ background: 'linear-gradient(to right, #5c1212, #8c1c1c)', color: '#f0d8b8' }}
+            className="btn-wine px-8 py-3 rounded-2xl font-semibold"
           >
             홈으로 돌아가기
           </button>
@@ -230,9 +235,9 @@ function GamePageContent() {
     };
 
     return (
-      <div className="relative min-h-screen p-4 overflow-hidden" style={{ background: '#0c0704' }}>
+      <div className="relative min-h-screen p-4 overflow-hidden" style={{ background: 'var(--bg)' }}>
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 30%, rgba(100,30,10,0.2) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 30%, rgba(140,28,36,0.16) 0%, transparent 70%)' }}
         />
         <ToastContainer />
         <div className="relative max-w-md mx-auto pb-28">
@@ -240,24 +245,22 @@ function GamePageContent() {
 
           {/* 타이틀 */}
           <div className="text-center mb-8">
-            <p className="text-xs font-medium tracking-[0.3em] uppercase mb-2" style={{ color: 'rgba(160,100,50,0.6)' }}>
-              집들이 미스터리
-            </p>
-            <h1 className="text-2xl font-bold" style={{ color: '#e4ccaa' }}>파티에 합류하기</h1>
+            <p className="eyebrow mb-2">집들이 미스터리</p>
+            <h1 className="font-display text-2xl" style={{ color: 'var(--ink)' }}>파티에 합류하기</h1>
           </div>
 
           {/* 참여 상태 */}
           <div
             className="rounded-2xl p-4 mb-5 text-center"
-            style={{ background: 'rgba(16,8,5,0.85)', border: '1px solid rgba(120,75,40,0.2)' }}
+            style={{ background: 'rgba(27,21,16,0.85)', border: '1px solid var(--line-strong)' }}
           >
-            <p className="text-3xl font-bold mb-1" style={{ color: '#e4ccaa' }}>
-              {joinedPlayers.length}<span className="text-base font-normal" style={{ color: 'rgba(160,110,60,0.6)' }}> / 6</span>
+            <p className="num text-3xl font-bold mb-1" style={{ color: 'var(--ink)' }}>
+              {joinedPlayers.length}<span className="text-base font-normal" style={{ color: 'var(--ink-faint)' }}> / 6</span>
             </p>
-            <p className="text-xs" style={{ color: 'rgba(140,95,55,0.7)' }}>명 참여 완료</p>
+            <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>명 참여 완료</p>
             {allJoined && (
-              <p className="text-sm font-semibold mt-2 animate-pulse" style={{ color: '#68d391' }}>
-                ✨ 모든 플레이어가 모였습니다!
+              <p className="text-sm font-semibold mt-2 animate-pulse inline-flex items-center justify-center gap-1.5" style={{ color: 'var(--team-citizen)' }}>
+                <Check size={15} /> 모든 플레이어가 모였습니다!
               </p>
             )}
           </div>
@@ -275,8 +278,8 @@ function GamePageContent() {
             <button
               onClick={handleJoin}
               disabled={!playerName.trim() || allJoined}
-              className="px-5 h-12 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
-              style={{ background: 'linear-gradient(to right, #5c1212, #8c1c1c)', color: '#f0d8b8', minWidth: 72 }}
+              className="btn-wine px-5 h-12 rounded-xl font-semibold text-sm transition-all disabled:opacity-40"
+              style={{ minWidth: 72 }}
             >
               참여
             </button>
@@ -289,33 +292,33 @@ function GamePageContent() {
                 key={player.id}
                 className="rounded-xl px-4 py-3 flex items-center justify-between animate-slide-in-left"
                 style={{
-                  background: 'rgba(16,8,5,0.85)',
-                  border: '1px solid rgba(120,75,40,0.18)',
+                  background: 'rgba(27,21,16,0.85)',
+                  border: '1px solid var(--line)',
                   animationDelay: `${idx * 0.05}s`,
                 }}
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                    style={{ background: 'rgba(140,80,40,0.2)', color: '#c8a070' }}
+                    className="num w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                    style={{ background: 'rgba(232,184,100,0.12)', color: 'var(--candle)' }}
                   >
                     {idx + 1}
                   </span>
-                  <span className="font-medium text-sm" style={{ color: '#ddc8a8' }}>{player.name}</span>
+                  <span className="font-medium text-sm" style={{ color: 'var(--ink)' }}>{player.name}</span>
                   {idx === 0 && (
                     <span
-                      className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                      style={{ background: 'rgba(160,110,40,0.15)', color: '#c8a050', border: '1px solid rgba(160,110,40,0.2)' }}
+                      className="eyebrow px-2 py-0.5 rounded-full"
+                      style={{ background: 'rgba(232,184,100,0.12)', color: 'var(--candle)', border: '1px solid rgba(232,184,100,0.2)', fontSize: '0.625rem' }}
                     >
                       호스트
                     </span>
                   )}
                 </div>
-                <span style={{ color: '#68d391' }} className="text-sm">✓</span>
+                <Check size={16} style={{ color: 'var(--team-citizen)' }} />
               </div>
             ))}
             {joinedPlayers.length === 0 && (
-              <p className="text-center text-sm py-6" style={{ color: 'rgba(120,80,45,0.5)' }}>
+              <p className="text-center text-sm py-6" style={{ color: 'var(--ink-faint)' }}>
                 아직 아무도 오지 않았네요...
               </p>
             )}
@@ -324,21 +327,16 @@ function GamePageContent() {
           {isHost && joinedPlayers.length > 0 && (
             <div
               className="mt-5 p-4 rounded-2xl"
-              style={{ background: 'rgba(16,8,5,0.85)', border: '1px solid rgba(120,75,40,0.2)' }}
+              style={{ background: 'rgba(27,21,16,0.85)', border: '1px solid var(--line-strong)' }}
             >
-              <p className="text-xs font-medium mb-3 text-center" style={{ color: 'rgba(160,110,60,0.8)' }}>
-                📋 친구들에게 링크를 공유하세요
+              <p className="eyebrow mb-3 text-center" style={{ color: 'var(--ink-muted)' }}>
+                친구들에게 링크를 공유하세요
               </p>
               <button
                 onClick={copyLink}
-                className="w-full py-2.5 rounded-xl text-sm font-semibold"
-                style={{
-                  background: 'linear-gradient(to right, #1a4a1a, #1c6c1c)',
-                  color: '#a0e8a0',
-                  border: '1px solid rgba(40,160,60,0.2)',
-                }}
+                className="btn-ghost w-full py-2.5 rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-2"
               >
-                📋 링크 복사
+                <Copy size={16} /> 링크 복사
               </button>
             </div>
           )}
@@ -351,14 +349,15 @@ function GamePageContent() {
   // ── 게임 종료 화면 ────────────────────────────────────────────────────────
   if (gameState.phase === "ended") {
     const winColors = {
-      citizens: { from: '#1a4a1a', to: '#2a6a2a', text: '#90e890', glow: 'rgba(40,180,60,0.15)', label: '시민 팀 승리', emoji: '🎉', sub: '범인의 정체가 드러났습니다' },
-      mafia:    { from: '#4a1010', to: '#7a1818', text: '#f08888', glow: 'rgba(200,40,40,0.15)', label: '마피아 팀 승리', emoji: '🍷', sub: '범인이 끝까지 살아남았습니다' },
-      drunkard: { from: '#4a3000', to: '#6a4800', text: '#e8c060', glow: 'rgba(200,160,40,0.15)', label: '만취객 승리', emoji: '🥴', sub: '만취객이 결국 쫓겨났습니다' },
+      citizens: { color: 'var(--team-citizen)', glow: 'rgba(134,176,124,0.14)', Icon: Users,     label: '시민 팀 승리', sub: '범인의 정체가 드러났습니다' },
+      mafia:    { color: 'var(--team-mafia)',   glow: 'rgba(194,73,90,0.16)',  Icon: WineGlass,  label: '마피아 팀 승리', sub: '범인이 끝까지 살아남았습니다' },
+      drunkard: { color: 'var(--team-drunkard)',glow: 'rgba(232,184,100,0.14)',Icon: Bottle,     label: '만취객 승리', sub: '만취객이 결국 쫓겨났습니다' },
     };
     const wc = winColors[gameState.winner as keyof typeof winColors] ?? winColors.citizens;
+    const WinIcon = wc.Icon;
 
     return (
-      <div className="relative min-h-screen p-4 overflow-hidden" style={{ background: '#0c0704' }}>
+      <div className="relative min-h-screen p-4 overflow-hidden" style={{ background: 'var(--bg-deep)' }}>
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: `radial-gradient(ellipse 80% 50% at 50% 20%, ${wc.glow} 0%, transparent 70%)` }}
@@ -370,21 +369,30 @@ function GamePageContent() {
 
           {/* 결과 카드 */}
           <div
-            className="rounded-2xl p-6 mb-6 text-center animate-fade-in-up"
+            className="relative overflow-hidden rounded-2xl p-6 mb-6 text-center animate-fade-in-up"
             style={{
-              background: `linear-gradient(145deg, ${wc.from}, ${wc.to})`,
-              border: `1px solid rgba(255,255,255,0.08)`,
-              boxShadow: `0 8px 40px rgba(0,0,0,0.6)`,
+              background: `linear-gradient(180deg, ${wc.glow}, rgba(13,10,6,0.6))`,
+              border: '1px solid var(--line-strong)',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.6)',
             }}
           >
-            <div className="text-5xl mb-3">{wc.emoji}</div>
-            <h2 className="text-3xl font-bold mb-1" style={{ color: wc.text }}>{wc.label}!</h2>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{wc.sub}</p>
-            <div className="h-px mt-5 mb-4" style={{ background: 'rgba(255,255,255,0.08)' }} />
-            <p className="text-xs font-medium uppercase tracking-widest mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>게임 기록</p>
+            <div
+              className="absolute top-0 left-0 right-0 h-px"
+              style={{ background: `linear-gradient(to right, transparent, ${wc.color}55, transparent)` }}
+            />
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3"
+              style={{ background: 'rgba(0,0,0,0.25)', border: `1px solid ${wc.color}40`, color: wc.color }}
+            >
+              <WinIcon size={28} />
+            </div>
+            <h2 className="font-display text-3xl mb-1" style={{ color: wc.color }}>{wc.label}</h2>
+            <p className="text-sm" style={{ color: 'var(--ink-muted)' }}>{wc.sub}</p>
+            <div className="h-px mt-5 mb-4" style={{ background: 'var(--line)' }} />
+            <p className="eyebrow mb-3">게임 기록</p>
             <div className="space-y-1.5 text-left">
               {gameState.history.map((event, i) => (
-                <p key={i} className="text-xs leading-relaxed pl-2.5 border-l" style={{ color: 'rgba(255,255,255,0.5)', borderColor: 'rgba(255,255,255,0.12)' }}>
+                <p key={i} className="text-xs leading-relaxed pl-2.5 border-l" style={{ color: 'var(--ink-muted)', borderColor: 'var(--line-strong)' }}>
                   {event}
                 </p>
               ))}
@@ -400,12 +408,7 @@ function GamePageContent() {
 
           <button
             onClick={() => router.push("/")}
-            className="w-full mt-6 py-4 rounded-2xl font-bold text-base transition-all active:scale-[0.98]"
-            style={{
-              background: 'linear-gradient(to right, #5c1212, #8c1c1c)',
-              color: '#f0d8b8',
-              boxShadow: '0 4px 24px rgba(80,15,10,0.5)',
-            }}
+            className="btn-wine w-full mt-6 py-4 rounded-2xl font-bold text-base"
           >
             새 게임 시작
           </button>
@@ -431,31 +434,32 @@ function GamePageContent() {
     };
 
     const roleStyle: Record<string, { color: string; borderColor: string; bg: string }> = {
-      mafia:  { color: '#f08080', borderColor: 'rgba(220,60,60,0.3)',  bg: 'rgba(80,10,10,0.3)'  },
-      police: { color: '#80c8f0', borderColor: 'rgba(60,140,220,0.3)', bg: 'rgba(10,40,80,0.3)'  },
-      doctor: { color: '#80f0b0', borderColor: 'rgba(60,200,120,0.3)', bg: 'rgba(10,60,30,0.3)'  },
+      mafia:  { color: 'var(--team-mafia)',   borderColor: 'rgba(194,73,90,0.3)',  bg: 'rgba(140,28,36,0.16)'  },
+      police: { color: 'var(--candle)',       borderColor: 'rgba(232,184,100,0.3)', bg: 'rgba(232,184,100,0.10)' },
+      doctor: { color: 'var(--team-citizen)', borderColor: 'rgba(134,176,124,0.3)', bg: 'rgba(134,176,124,0.10)' },
     };
     const rs = currentPlayer?.role ? (roleStyle[currentPlayer.role] ?? roleStyle.doctor) : roleStyle.doctor;
+    const RoleGlyph = currentPlayer?.role ? (roleGlyph[currentPlayer.role] ?? roleGlyph.doctor) : roleGlyph.doctor;
 
     const investigation =
       currentPlayer?.role === "police" && gameState.nightActions?.investigate?.playerId === currentPlayerId
         ? gameState.nightActions.investigate
         : null;
     const nightPeek = !canAct ? (
-      <span>😴 잠든 척 · 지도를 자유롭게 이동하세요</span>
+      <span>잠든 척 · 지도를 자유롭게 이동하세요</span>
     ) : done ? (
       investigation ? (
-        <span style={{ color: investigation.result ? '#f08878' : '#80e8a8' }}>
-          {investigation.result ? '🚨 조사 결과: 범인입니다!' : '✅ 조사 결과: 범인이 아닙니다'}
+        <span style={{ color: investigation.result ? 'var(--wine-bright)' : 'var(--team-citizen)' }}>
+          {investigation.result ? '조사 결과: 범인입니다!' : '조사 결과: 범인이 아닙니다'}
         </span>
       ) : (
-        <span>✓ 완료 · 다른 사람 대기 중 ({readyCount}/{needsAction.length})</span>
+        <span className="inline-flex items-center gap-1.5"><Check size={14} /> 완료 · 다른 사람 대기 중 ({readyCount}/{needsAction.length})</span>
       )
     ) : (
       <span>
-        {currentPlayer?.role === "mafia" && "🍷 제거할 대상을 선택하세요"}
-        {currentPlayer?.role === "police" && "🕵️ 조사할 사람을 선택하세요"}
-        {currentPlayer?.role === "doctor" && "🧹 보호할 사람을 선택하세요"}
+        {currentPlayer?.role === "mafia" && "제거할 대상을 선택하세요"}
+        {currentPlayer?.role === "police" && "조사할 사람을 선택하세요"}
+        {currentPlayer?.role === "doctor" && "보호할 사람을 선택하세요"}
       </span>
     );
 
@@ -482,25 +486,25 @@ function GamePageContent() {
               done ? (
                 <div
                   className="text-center p-4 rounded-2xl"
-                  style={{ background: 'rgba(30,80,30,0.15)', border: '1px solid rgba(60,160,80,0.2)' }}
+                  style={{ background: 'rgba(134,176,124,0.10)', border: '1px solid rgba(134,176,124,0.25)' }}
                 >
-                  <div className="text-2xl mb-2">
-                    {currentPlayer?.role === 'mafia' ? '🍷' : currentPlayer?.role === 'police' ? '🕵️' : '🧹'}
+                  <div className="flex justify-center mb-2" style={{ color: rs.color }}>
+                    <RoleGlyph size={26} />
                   </div>
-                  <p className="font-bold text-sm mb-1" style={{ color: '#80e890' }}>완료했습니다</p>
-                  <p className="text-xs" style={{ color: 'rgba(120,180,120,0.6)' }}>다른 사람들을 기다리는 중...</p>
+                  <p className="font-bold text-sm mb-1" style={{ color: 'var(--team-citizen)' }}>완료했습니다</p>
+                  <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>다른 사람들을 기다리는 중...</p>
                   {currentPlayer?.role === "police" && gameState.nightActions?.investigate?.playerId === currentPlayerId && (
                     <div
                       className="mt-3 p-3 rounded-xl"
                       style={{
-                        background: gameState.nightActions.investigate.result ? 'rgba(180,30,20,0.15)' : 'rgba(30,140,60,0.12)',
-                        border: `1px solid ${gameState.nightActions.investigate.result ? 'rgba(220,60,50,0.3)' : 'rgba(60,180,80,0.25)'}`,
+                        background: gameState.nightActions.investigate.result ? 'rgba(140,28,36,0.16)' : 'rgba(134,176,124,0.10)',
+                        border: `1px solid ${gameState.nightActions.investigate.result ? 'rgba(194,73,90,0.3)' : 'rgba(134,176,124,0.25)'}`,
                       }}
                     >
-                      <p className="font-bold text-base" style={{ color: gameState.nightActions.investigate.result ? '#f08878' : '#80e8a8' }}>
-                        {gameState.nightActions.investigate.result ? '🚨 범인입니다!' : '✅ 범인이 아닙니다.'}
+                      <p className="font-bold text-base" style={{ color: gameState.nightActions.investigate.result ? 'var(--wine-bright)' : 'var(--team-citizen)' }}>
+                        {gameState.nightActions.investigate.result ? '범인입니다!' : '범인이 아닙니다.'}
                       </p>
-                      <p className="text-xs mt-1" style={{ color: 'rgba(180,180,180,0.5)' }}>이 정보를 잘 활용하세요</p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--ink-faint)' }}>이 정보를 잘 활용하세요</p>
                     </div>
                   )}
                 </div>
@@ -510,12 +514,13 @@ function GamePageContent() {
                     className="rounded-xl p-3"
                     style={{ background: rs.bg, border: `1px solid ${rs.borderColor}` }}
                   >
-                    <p className="font-semibold text-sm mb-0.5" style={{ color: rs.color }}>
-                      {currentPlayer?.role === "mafia" && "🍷 오늘 밤 누구를 제거하시겠습니까?"}
-                      {currentPlayer?.role === "police" && "🕵️ 오늘 밤 누구를 조사하시겠습니까?"}
-                      {currentPlayer?.role === "doctor" && "🧹 오늘 밤 누구를 보호하시겠습니까?"}
+                    <p className="font-semibold text-sm mb-0.5 inline-flex items-center gap-2" style={{ color: rs.color }}>
+                      <RoleGlyph size={16} />
+                      {currentPlayer?.role === "mafia" && "오늘 밤 누구를 제거하시겠습니까?"}
+                      {currentPlayer?.role === "police" && "오늘 밤 누구를 조사하시겠습니까?"}
+                      {currentPlayer?.role === "doctor" && "오늘 밤 누구를 보호하시겠습니까?"}
                     </p>
-                    <p className="text-xs" style={{ color: 'rgba(180,180,180,0.4)' }}>
+                    <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
                       {currentPlayer?.role === "mafia" && "선택한 사람은 내일 아침 사라집니다"}
                       {currentPlayer?.role === "police" && "그 사람이 범인인지 아닌지 알 수 있습니다"}
                       {currentPlayer?.role === "doctor" && "오늘 밤 공격을 막아드립니다 (본인 포함 가능)"}
@@ -529,11 +534,11 @@ function GamePageContent() {
                         className={cn("min-h-[52px] px-3 py-3.5 rounded-xl text-sm font-medium transition-all active:scale-95")}
                         style={{
                           background: selectedPlayerId === player.id
-                            ? 'linear-gradient(to right, #8a2020, #b02828)'
-                            : 'rgba(20,10,6,0.7)',
-                          color: selectedPlayerId === player.id ? '#fce8d0' : 'rgba(200,160,100,0.8)',
-                          border: `1px solid ${selectedPlayerId === player.id ? 'rgba(200,80,60,0.4)' : 'rgba(120,75,40,0.2)'}`,
-                          boxShadow: selectedPlayerId === player.id ? '0 4px 16px rgba(150,30,20,0.3)' : 'none',
+                            ? 'linear-gradient(145deg, #6E141B, var(--wine))'
+                            : 'rgba(27,21,16,0.7)',
+                          color: selectedPlayerId === player.id ? '#F4E4D0' : 'var(--ink-muted)',
+                          border: `1px solid ${selectedPlayerId === player.id ? 'rgba(179,51,64,0.4)' : 'var(--line)'}`,
+                          boxShadow: selectedPlayerId === player.id ? '0 4px 16px rgba(140,28,36,0.3)' : 'none',
                         }}
                       >
                         {player.name}
@@ -547,12 +552,7 @@ function GamePageContent() {
                         else if (currentPlayer?.role === "police") doNightAction("investigate");
                         else doNightAction("protect");
                       }}
-                      className="w-full py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98]"
-                      style={{
-                        background: 'linear-gradient(to right, #6a1515, #9a2020)',
-                        color: '#fce8d0',
-                        boxShadow: '0 4px 20px rgba(120,20,15,0.4)',
-                      }}
+                      className="btn-wine w-full py-3.5 rounded-xl font-bold text-sm"
                     >
                       {currentPlayer?.role === "mafia" ? "제거하기" : currentPlayer?.role === "police" ? "조사하기" : "보호하기"}
                     </button>
@@ -561,29 +561,28 @@ function GamePageContent() {
               )
             ) : (
               <div className="text-center py-4">
-                <div className="text-3xl mb-2 opacity-40">😴</div>
-                <p className="text-sm font-medium" style={{ color: 'rgba(160,120,80,0.7)' }}>잠든 척하며 기다리세요</p>
-                <p className="text-xs mt-1" style={{ color: 'rgba(120,85,50,0.5)' }}>지도에서 자유롭게 이동할 수 있어요</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--ink-muted)' }}>잠든 척하며 기다리세요</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--ink-faint)' }}>지도에서 자유롭게 이동할 수 있어요</p>
               </div>
             )}
 
             {needsAction.length > 0 && (
-              <div className="rounded-xl p-3" style={{ background: 'rgba(15,8,5,0.6)', border: '1px solid rgba(100,65,35,0.2)' }}>
-                <p className="text-xs text-center mb-2" style={{ color: 'rgba(140,95,55,0.7)' }}>
-                  준비 완료 <span style={{ color: '#d4a060' }} className="font-bold">{readyCount}</span>/{needsAction.length}
+              <div className="rounded-xl p-3" style={{ background: 'rgba(13,10,6,0.6)', border: '1px solid var(--line)' }}>
+                <p className="text-xs text-center mb-2" style={{ color: 'var(--ink-muted)' }}>
+                  준비 완료 <span style={{ color: 'var(--candle)' }} className="num font-bold">{readyCount}</span>/{needsAction.length}
                 </p>
                 <div className="flex flex-wrap gap-1 justify-center">
                   {needsAction.map((p) => (
                     <span
                       key={p.id}
-                      className="text-xs px-2 py-0.5 rounded-full"
+                      className="text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1"
                       style={{
-                        background: p.ready ? 'rgba(40,120,50,0.2)' : 'rgba(120,75,40,0.12)',
-                        color: p.ready ? '#80d890' : 'rgba(160,110,60,0.6)',
-                        border: `1px solid ${p.ready ? 'rgba(60,160,70,0.25)' : 'rgba(120,75,40,0.15)'}`,
+                        background: p.ready ? 'rgba(134,176,124,0.14)' : 'rgba(233,222,201,0.05)',
+                        color: p.ready ? 'var(--team-citizen)' : 'var(--ink-faint)',
+                        border: `1px solid ${p.ready ? 'rgba(134,176,124,0.25)' : 'var(--line)'}`,
                       }}
                     >
-                      {p.name} {p.ready ? '✓' : '⏳'}
+                      {p.name} {p.ready ? <Check size={12} /> : <Clock size={12} />}
                     </span>
                   ))}
                 </div>
@@ -595,9 +594,9 @@ function GamePageContent() {
               disabled={!allReady}
               className="w-full py-3 rounded-xl font-semibold text-sm transition-all"
               style={{
-                background: allReady ? 'linear-gradient(to right, #3a1a6a, #5a2a9a)' : 'rgba(40,26,14,0.85)',
-                color: allReady ? '#d8c0f8' : 'rgba(190,150,100,0.75)',
-                border: `1px solid ${allReady ? 'rgba(120,70,200,0.3)' : 'rgba(140,95,50,0.3)'}`,
+                background: allReady ? 'linear-gradient(145deg, var(--candle-soft), var(--candle))' : 'rgba(27,21,16,0.6)',
+                color: allReady ? 'var(--bg-deep)' : 'var(--ink-faint)',
+                border: `1px solid ${allReady ? 'rgba(232,184,100,0.4)' : 'var(--line)'}`,
               }}
             >
               {allReady ? '밤 페이즈 종료' : `대기 중... (${readyCount}/${needsAction.length})`}
@@ -627,16 +626,16 @@ function GamePageContent() {
 
         {/* 하단 패널 */}
         <CollapsiblePanel
-          peek={<span>🗣️ 토론 시간 · 🗳️ 준비되면 투표 시작</span>}
+          peek={<span>토론 시간 · 준비되면 투표 시작</span>}
           maxHeightClass="max-h-[52vh]"
         >
             {/* 토론 안내 */}
             <div
               className="rounded-xl px-3 py-2.5 text-center"
-              style={{ background: 'rgba(40,26,12,0.6)', border: '1px solid rgba(170,120,50,0.22)' }}
+              style={{ background: 'rgba(232,184,100,0.08)', border: '1px solid rgba(232,184,100,0.22)' }}
             >
-              <p className="text-sm font-semibold" style={{ color: '#e0c088' }}>🗣️ 토론 시간</p>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(160,120,70,0.7)' }}>
+              <p className="text-sm font-semibold" style={{ color: 'var(--candle)' }}>토론 시간</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--ink-muted)' }}>
                 자유롭게 이야기하며 범인을 추리하세요
               </p>
             </div>
@@ -644,15 +643,15 @@ function GamePageContent() {
             {/* 아침 뉴스 */}
             <div
               className="rounded-xl overflow-hidden"
-              style={{ background: 'rgba(30,18,8,0.6)', border: '1px solid rgba(160,110,50,0.18)' }}
+              style={{ background: 'rgba(27,21,16,0.6)', border: '1px solid var(--line-strong)' }}
             >
               <div
                 className="flex items-center gap-2 px-3 py-2"
-                style={{ borderBottom: '1px solid rgba(160,110,50,0.12)' }}
+                style={{ borderBottom: '1px solid var(--line)' }}
               >
-                <span className="text-sm">📰</span>
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#c8a060' }}>아침 뉴스</span>
-                <span className="ml-auto text-[10px]" style={{ color: 'rgba(140,95,50,0.5)' }}>방금 들어온 소식</span>
+                <Scroll size={15} style={{ color: 'var(--candle)' }} />
+                <span className="eyebrow" style={{ color: 'var(--candle-soft)' }}>아침 뉴스</span>
+                <span className="ml-auto text-[10px]" style={{ color: 'var(--ink-faint)' }}>방금 들어온 소식</span>
               </div>
               <div className="p-3 space-y-2">
                 {gameState.history.slice(-3).map((event, i) => (
@@ -660,8 +659,8 @@ function GamePageContent() {
                     key={i}
                     className="text-xs leading-relaxed pl-2.5 border-l"
                     style={{
-                      color: i === 0 ? '#e0c8a0' : 'rgba(160,120,70,0.6)',
-                      borderColor: i === 0 ? 'rgba(180,120,50,0.45)' : 'rgba(120,80,40,0.2)',
+                      color: i === 0 ? 'var(--ink)' : 'var(--ink-muted)',
+                      borderColor: i === 0 ? 'rgba(232,184,100,0.45)' : 'var(--line)',
                     }}
                   >
                     {event}
@@ -672,7 +671,7 @@ function GamePageContent() {
 
             {/* 생존자 */}
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-widest mb-1.5" style={{ color: 'rgba(130,90,50,0.6)' }}>
+              <p className="eyebrow mb-1.5" style={{ color: 'var(--ink-faint)' }}>
                 생존자 ({gameState.players.filter(p => p.isAlive).length}명)
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -681,9 +680,9 @@ function GamePageContent() {
                     key={p.id}
                     className="text-xs px-2.5 py-0.5 rounded-full"
                     style={{
-                      background: p.id === currentPlayerId ? 'rgba(60,130,200,0.15)' : 'rgba(120,75,40,0.12)',
-                      color: p.id === currentPlayerId ? '#80c0f0' : 'rgba(180,130,80,0.8)',
-                      border: `1px solid ${p.id === currentPlayerId ? 'rgba(60,140,210,0.25)' : 'rgba(120,75,40,0.15)'}`,
+                      background: p.id === currentPlayerId ? 'rgba(232,184,100,0.12)' : 'rgba(233,222,201,0.05)',
+                      color: p.id === currentPlayerId ? 'var(--candle)' : 'var(--ink-muted)',
+                      border: `1px solid ${p.id === currentPlayerId ? 'rgba(232,184,100,0.25)' : 'var(--line)'}`,
                     }}
                   >
                     {p.name}{p.id === currentPlayerId ? ' (나)' : ''}
@@ -694,14 +693,9 @@ function GamePageContent() {
 
             <button
               onClick={() => apiPost({ action: "startVoting" })}
-              className="w-full py-3.5 rounded-xl font-bold text-sm transition-all active:scale-[0.98]"
-              style={{
-                background: 'linear-gradient(to right, #5a1010, #9a2020)',
-                color: '#fce8d0',
-                boxShadow: '0 4px 20px rgba(100,20,15,0.4)',
-              }}
+              className="btn-wine w-full py-3.5 rounded-xl font-bold text-sm inline-flex items-center justify-center gap-2"
             >
-              🗳️ 투표 시작
+              <Gavel size={16} /> 투표 시작
             </button>
         </CollapsiblePanel>
         <MusicPlayer />
@@ -717,15 +711,15 @@ function GamePageContent() {
     return (
       <div
         className="relative min-h-screen p-4 overflow-hidden"
-        style={{ background: '#080410' }}
+        style={{ background: 'var(--bg-deep)' }}
       >
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 20%, rgba(80,20,120,0.25) 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 20%, rgba(140,28,36,0.16) 0%, transparent 70%)' }}
         />
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[10%] left-[10%] w-72 h-72 bg-purple-950/20 rounded-full blur-[80px] animate-float" />
-          <div className="absolute bottom-[15%] right-[5%] w-60 h-60 bg-rose-950/15 rounded-full blur-[70px] animate-float-delayed" />
+          <div className="absolute top-[10%] left-[10%] w-72 h-72 rounded-full blur-[80px] animate-float" style={{ background: 'rgba(140,28,36,0.12)' }} />
+          <div className="absolute bottom-[15%] right-[5%] w-60 h-60 rounded-full blur-[70px] animate-float-delayed" style={{ background: 'rgba(232,184,100,0.08)' }} />
         </div>
 
         <ToastContainer />
@@ -737,20 +731,20 @@ function GamePageContent() {
           {/* 투표 진행 바 */}
           <div
             className="rounded-xl p-3.5 mb-4 mt-3"
-            style={{ background: 'rgba(20,10,30,0.7)', border: '1px solid rgba(140,60,180,0.2)' }}
+            style={{ background: 'rgba(27,21,16,0.7)', border: '1px solid var(--line-strong)' }}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium" style={{ color: 'rgba(180,130,220,0.7)' }}>투표 현황</span>
-              <span className="text-xs font-bold" style={{ color: '#c890f0' }}>
-                {votedCount}<span style={{ color: 'rgba(180,130,220,0.5)' }}>/{aliveCount}명</span>
+              <span className="eyebrow" style={{ color: 'var(--ink-muted)' }}>투표 현황</span>
+              <span className="num text-xs font-bold" style={{ color: 'var(--wine-bright)' }}>
+                {votedCount}<span style={{ color: 'var(--ink-faint)' }}>/{aliveCount}명</span>
               </span>
             </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(233,222,201,0.06)' }}>
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${aliveCount > 0 ? (votedCount / aliveCount) * 100 : 0}%`,
-                  background: 'linear-gradient(to right, #7030c0, #c040a0)',
+                  background: 'linear-gradient(to right, var(--wine), var(--wine-bright))',
                 }}
               />
             </div>
@@ -772,25 +766,25 @@ function GamePageContent() {
                 key={player.id}
                 className="flex justify-between items-center px-4 py-2.5 rounded-xl transition-all"
                 style={{
-                  background: player.votedFor ? 'rgba(30,80,20,0.15)' : 'rgba(15,8,20,0.6)',
-                  border: `1px solid ${player.votedFor ? 'rgba(50,150,40,0.2)' : 'rgba(100,60,140,0.15)'}`,
+                  background: player.votedFor ? 'rgba(134,176,124,0.10)' : 'rgba(27,21,16,0.6)',
+                  border: `1px solid ${player.votedFor ? 'rgba(134,176,124,0.25)' : 'var(--line)'}`,
                 }}
               >
-                <span className="text-sm font-medium" style={{ color: '#d8c8e8' }}>{player.name}</span>
+                <span className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{player.name}</span>
                 <div className="flex items-center gap-2">
                   <span
-                    className="text-xs px-2 py-0.5 rounded-full"
+                    className="text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1"
                     style={{
-                      background: player.votedFor ? 'rgba(40,140,40,0.2)' : 'rgba(100,60,140,0.15)',
-                      color: player.votedFor ? '#80e880' : 'rgba(160,120,200,0.6)',
+                      background: player.votedFor ? 'rgba(134,176,124,0.14)' : 'rgba(233,222,201,0.05)',
+                      color: player.votedFor ? 'var(--team-citizen)' : 'var(--ink-faint)',
                     }}
                   >
-                    {player.votedFor ? '✓ 완료' : '⏳ 대기'}
+                    {player.votedFor ? <><Check size={12} /> 완료</> : <><Clock size={12} /> 대기</>}
                   </span>
                   {gameState.voteResults?.[player.id] && (
                     <span
-                      className="text-xs font-bold px-2 py-0.5 rounded-full"
-                      style={{ background: 'rgba(140,60,180,0.2)', color: '#c890f0' }}
+                      className="num text-xs font-bold px-2 py-0.5 rounded-full"
+                      style={{ background: 'rgba(194,73,90,0.18)', color: '#e08a96', border: '1px solid rgba(194,73,90,0.25)' }}
                     >
                       {gameState.voteResults[player.id]}표
                     </span>
@@ -813,10 +807,10 @@ function GamePageContent() {
   const gameStarted = gameState.status === "playing" && gameState.players[0]?.role !== null;
 
   return (
-    <div className="relative min-h-screen p-4 overflow-hidden" style={{ background: '#0c0704' }}>
+    <div className="relative min-h-screen p-4 overflow-hidden" style={{ background: 'var(--bg)' }}>
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 80% 45% at 50% 25%, rgba(100,30,10,0.18) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse 80% 45% at 50% 25%, rgba(140,28,36,0.16) 0%, transparent 70%)' }}
       />
       <ToastContainer />
       <div className="relative max-w-md mx-auto pb-28">
@@ -827,48 +821,57 @@ function GamePageContent() {
         {!allJoined && (
           <div
             className="rounded-xl p-3.5 mb-4 text-center"
-            style={{ background: 'rgba(30,18,8,0.7)', border: '1px solid rgba(160,110,50,0.2)' }}
+            style={{ background: 'rgba(27,21,16,0.7)', border: '1px solid var(--line-strong)' }}
           >
-            <p className="text-sm font-medium mb-1" style={{ color: '#c8a060' }}>⏳ 플레이어를 기다리는 중...</p>
-            <p className="text-xs" style={{ color: 'rgba(140,95,50,0.7)' }}>
-              참여 <span className="font-bold" style={{ color: '#d4a060' }}>{joinedPlayers.length}</span>/6
+            <p className="text-sm font-medium mb-1 inline-flex items-center justify-center gap-1.5" style={{ color: 'var(--candle)' }}>
+              <Clock size={14} /> 플레이어를 기다리는 중...
+            </p>
+            <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
+              참여 <span className="num font-bold" style={{ color: 'var(--candle)' }}>{joinedPlayers.length}</span>/6
             </p>
           </div>
         )}
         {allJoined && !gameStarted && (
           <div
             className="rounded-xl p-3.5 mb-4 text-center animate-fade-in"
-            style={{ background: 'rgba(12,35,12,0.7)', border: '1px solid rgba(60,160,60,0.2)' }}
+            style={{ background: 'rgba(134,176,124,0.10)', border: '1px solid rgba(134,176,124,0.25)' }}
           >
-            <p className="text-sm font-medium" style={{ color: '#80e880' }}>✨ 모두 모였습니다!</p>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(100,180,100,0.6)' }}>"게임 시작"으로 역할을 배정하세요</p>
+            <p className="text-sm font-medium inline-flex items-center justify-center gap-1.5" style={{ color: 'var(--team-citizen)' }}>
+              <Check size={15} /> 모두 모였습니다!
+            </p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--ink-muted)' }}>&quot;게임 시작&quot;으로 역할을 배정하세요</p>
           </div>
         )}
         {gameStarted && !allReady && (
           <div
             className="rounded-xl p-3.5 mb-4 text-center"
-            style={{ background: 'rgba(30,18,8,0.7)', border: '1px solid rgba(160,110,50,0.2)' }}
+            style={{ background: 'rgba(27,21,16,0.7)', border: '1px solid var(--line-strong)' }}
           >
-            <p className="text-sm font-medium mb-1" style={{ color: '#c8a060' }}>⏳ 모두 준비할 때까지 기다리는 중...</p>
-            <p className="text-xs" style={{ color: 'rgba(140,95,50,0.7)' }}>
-              준비 <span className="font-bold" style={{ color: '#d4a060' }}>{readyCount}</span>/{gameState.players.length}
+            <p className="text-sm font-medium mb-1 inline-flex items-center justify-center gap-1.5" style={{ color: 'var(--candle)' }}>
+              <Clock size={14} /> 모두 준비할 때까지 기다리는 중...
+            </p>
+            <p className="text-xs" style={{ color: 'var(--ink-muted)' }}>
+              준비 <span className="num font-bold" style={{ color: 'var(--candle)' }}>{readyCount}</span>/{gameState.players.length}
             </p>
           </div>
         )}
 
         {/* 플레이어 목록 */}
         <div
-          className="rounded-2xl mb-5 overflow-hidden"
-          style={{ background: 'rgba(14,7,4,0.9)', border: '1px solid rgba(130,80,45,0.2)', boxShadow: '0 4px 24px rgba(0,0,0,0.5)' }}
+          className="paper-card rounded-2xl mb-5 overflow-hidden"
         >
-          <div className="px-5 py-4" style={{ borderBottom: '1px solid rgba(120,75,40,0.15)' }}>
-            <h2 className="font-bold text-base flex items-center gap-2" style={{ color: '#e4ccaa' }}>
-              <span>{gameStarted ? '🎭' : '👥'}</span>
-              {gameStarted ? '역할 배정' : '파티 초대장'}
-            </h2>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(140,95,50,0.65)' }}>
-              {gameStarted ? '역할을 확인한 후 폰을 다음 사람에게 넘겨주세요.' : '모든 플레이어가 참여하면 게임을 시작할 수 있습니다.'}
-            </p>
+          <div className="px-5 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid var(--line)' }}>
+            <span style={{ color: 'var(--candle)' }}>
+              {gameStarted ? <Mask size={20} /> : <Users size={20} />}
+            </span>
+            <div>
+              <h2 className="font-display text-base" style={{ color: 'var(--ink)' }}>
+                {gameStarted ? '역할 배정' : '파티 초대장'}
+              </h2>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--ink-muted)' }}>
+                {gameStarted ? '역할을 확인한 후 폰을 다음 사람에게 넘겨주세요.' : '모든 플레이어가 참여하면 게임을 시작할 수 있습니다.'}
+              </p>
+            </div>
           </div>
           <div className="p-4 space-y-2.5">
             {gameState.players.map((player, idx) => (
@@ -879,16 +882,16 @@ function GamePageContent() {
                   isCurrentPlayer={player.id === currentPlayerId}
                 />
                 {player.name === "" && (
-                  <span className="absolute top-3 right-3 text-xs" style={{ color: 'rgba(120,80,45,0.5)' }}>
+                  <span className="absolute top-3 right-3 text-xs" style={{ color: 'var(--ink-faint)' }}>
                     대기 중...
                   </span>
                 )}
                 {player.ready && gameStarted && (
                   <span
-                    className="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full"
-                    style={{ background: 'rgba(40,140,40,0.2)', color: '#80e880', border: '1px solid rgba(60,160,60,0.2)' }}
+                    className="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full inline-flex items-center gap-1"
+                    style={{ background: 'rgba(134,176,124,0.14)', color: 'var(--team-citizen)', border: '1px solid rgba(134,176,124,0.25)' }}
                   >
-                    ✓ 준비
+                    <Check size={12} /> 준비
                   </span>
                 )}
               </div>
@@ -900,18 +903,16 @@ function GamePageContent() {
 
         {isHost && !gameStarted && joinedPlayers.length > 0 && (
           <div
-            className="mb-4 p-4 rounded-2xl"
-            style={{ background: 'rgba(14,7,4,0.9)', border: '1px solid rgba(130,80,45,0.2)' }}
+            className="paper-card mb-4 p-4 rounded-2xl"
           >
-            <p className="text-xs font-medium mb-3 text-center" style={{ color: 'rgba(160,110,60,0.8)' }}>
-              📋 친구들에게 링크를 공유하세요
+            <p className="eyebrow mb-3 text-center" style={{ color: 'var(--ink-muted)' }}>
+              친구들에게 링크를 공유하세요
             </p>
             <button
               onClick={copyLink}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold"
-              style={{ background: 'linear-gradient(to right, #1a4a1a, #1c6c1c)', color: '#a0e8a0', border: '1px solid rgba(40,160,60,0.2)' }}
+              className="btn-ghost w-full py-2.5 rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-2"
             >
-              📋 링크 복사
+              <Copy size={16} /> 링크 복사
             </button>
           </div>
         )}
@@ -920,11 +921,14 @@ function GamePageContent() {
           <button
             onClick={() => apiPost({ action: "startGame" })}
             disabled={!allJoined}
-            className="w-full py-4 rounded-2xl font-bold text-base transition-all active:scale-[0.98] disabled:opacity-40"
-            style={{
-              background: allJoined ? 'linear-gradient(to right, #3a1a6a, #5a2a9a)' : 'rgba(20,12,8,0.6)',
-              color: allJoined ? '#d8c0f8' : 'rgba(140,100,60,0.5)',
-              boxShadow: allJoined ? '0 4px 24px rgba(80,30,150,0.3)' : 'none',
+            className={cn(
+              "w-full py-4 rounded-2xl font-bold text-base transition-all disabled:opacity-40",
+              allJoined ? "btn-wine" : ""
+            )}
+            style={allJoined ? undefined : {
+              background: 'rgba(27,21,16,0.6)',
+              color: 'var(--ink-faint)',
+              border: '1px solid var(--line)',
             }}
           >
             {allJoined ? '게임 시작 (역할 배정)' : `플레이어 대기 중... (${joinedPlayers.length}/6)`}
@@ -934,23 +938,25 @@ function GamePageContent() {
             {currentPlayer && !currentPlayer.ready && (
               <button
                 onClick={() => apiPost({ action: "ready", playerId: currentPlayerId })}
-                className="w-full py-4 rounded-2xl font-bold text-base mb-3 transition-all active:scale-[0.98]"
+                className="w-full py-4 rounded-2xl font-bold text-base mb-3 transition-all active:scale-[0.98] inline-flex items-center justify-center gap-2"
                 style={{
-                  background: 'linear-gradient(to right, #1a4a1a, #2a6a2a)',
-                  color: '#a0e8a0',
-                  boxShadow: '0 4px 24px rgba(30,120,40,0.3)',
+                  background: 'linear-gradient(145deg, #5E7A55, var(--team-citizen))',
+                  color: 'var(--bg-deep)',
+                  border: '1px solid rgba(134,176,124,0.4)',
                 }}
               >
-                ✓ 준비 완료
+                <Check size={18} /> 준비 완료
               </button>
             )}
             {currentPlayer?.ready && (
               <div
                 className="w-full mb-3 py-4 rounded-2xl text-center"
-                style={{ background: 'rgba(12,35,12,0.6)', border: '1px solid rgba(60,160,60,0.2)' }}
+                style={{ background: 'rgba(134,176,124,0.10)', border: '1px solid rgba(134,176,124,0.25)' }}
               >
-                <p className="font-semibold text-sm" style={{ color: '#80e880' }}>✓ 준비 완료</p>
-                <p className="text-xs mt-1" style={{ color: 'rgba(100,180,100,0.6)' }}>다른 플레이어들을 기다리는 중...</p>
+                <p className="font-semibold text-sm inline-flex items-center justify-center gap-1.5" style={{ color: 'var(--team-citizen)' }}>
+                  <Check size={15} /> 준비 완료
+                </p>
+                <p className="text-xs mt-1" style={{ color: 'var(--ink-muted)' }}>다른 플레이어들을 기다리는 중...</p>
               </div>
             )}
             <button
@@ -958,9 +964,9 @@ function GamePageContent() {
               disabled={!allReady}
               className="w-full py-4 rounded-2xl font-bold text-base transition-all active:scale-[0.98] disabled:opacity-40"
               style={{
-                background: allReady ? 'linear-gradient(to right, #1a0a40, #2a1060)' : 'rgba(20,12,8,0.6)',
-                color: allReady ? '#c0a8f0' : 'rgba(140,100,60,0.5)',
-                boxShadow: allReady ? '0 4px 24px rgba(50,20,120,0.35)' : 'none',
+                background: allReady ? 'linear-gradient(145deg, var(--candle-soft), var(--candle))' : 'rgba(27,21,16,0.6)',
+                color: allReady ? 'var(--bg-deep)' : 'var(--ink-faint)',
+                border: `1px solid ${allReady ? 'rgba(232,184,100,0.4)' : 'var(--line)'}`,
               }}
             >
               {allReady ? '첫 밤 시작' : `준비 대기 중... (${readyCount}/${gameState.players.length})`}

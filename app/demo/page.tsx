@@ -3,9 +3,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { Compass, Mask, Moon, Sun, Users, ArrowLeft, ArrowRight } from "@/app/components/icons";
 import type { PlayerData } from "@/app/game/GameCanvas";
 
 const GameCanvas = dynamic(() => import("@/app/game/GameCanvas"), { ssr: false });
@@ -56,6 +55,10 @@ const DEMO_NPCS: PlayerData[] = [
   { id: "demo-npc-5", name: "도윤", colorIndex: 5, isAlive: true },
 ];
 
+// 포커스 가시성 (촛불 링)
+const FOCUS_RING =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-[color:var(--candle)]";
+
 // ─── 컴포넌트 ─────────────────────────────────────────────────────────────────
 export default function DemoPage() {
   const router = useRouter();
@@ -98,86 +101,101 @@ export default function DemoPage() {
   // ─── 입장 화면 ─────────────────────────────────────────────────────────────
   if (stage === "entry") {
     return (
-      <main className="relative min-h-screen bg-gradient-to-br from-stone-950 via-red-950/50 to-stone-950 flex items-center justify-center p-4 overflow-hidden">
+      <main
+        className="relative min-h-screen flex items-center justify-center p-4 overflow-hidden"
+        style={{ background: "var(--bg)" }}
+      >
+        {/* 따뜻한 앰비언트 */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-[8%] left-[3%] w-72 h-72 bg-red-900/15 rounded-full blur-3xl animate-float" />
-          <div className="absolute bottom-[12%] right-[4%] w-64 h-64 bg-amber-900/10 rounded-full blur-3xl animate-float-delayed" />
-          <div className="absolute top-[50%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-rose-950/8 rounded-full blur-3xl animate-float-slow" />
+          <div
+            className="absolute inset-0"
+            style={{ background: "radial-gradient(ellipse 90% 50% at 50% 28%, rgba(140,28,36,0.15) 0%, transparent 68%)" }}
+          />
+          <div
+            className="absolute top-0 left-0 right-0 h-px"
+            style={{ background: "linear-gradient(to right, transparent, rgba(201,154,82,0.3), transparent)" }}
+          />
         </div>
 
         <div className="relative w-full max-w-sm animate-fade-in-up">
-          {/* 상단 골드 라인 */}
-          <div className="absolute top-0 left-10 right-10 h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
-
-          <div className="glass-card rounded-3xl border border-stone-700/40 p-7">
+          <div className="glass-card rounded-3xl p-7">
             {/* 헤더 */}
             <div className="text-center mb-6">
-              <div className="relative inline-block mb-3">
-                <div className="absolute inset-0 blur-2xl bg-red-800/20 rounded-full scale-150" />
-                <span className="relative text-5xl">🍷</span>
-              </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent mb-1">
+              <span
+                className="inline-flex items-center justify-center rounded-2xl mb-4"
+                style={{ width: 56, height: 56, background: "rgba(232,184,100,0.1)", border: "1px solid var(--line-strong)" }}
+              >
+                <Compass size={26} style={{ color: "var(--candle)" }} />
+              </span>
+              <p className="eyebrow">탐험 모드 · 맵 둘러보기</p>
+              <h1 className="font-display mt-2 text-2xl" style={{ color: "var(--ink)" }}>
                 혼자 해보기
               </h1>
-              <p className="text-stone-500 text-sm">
+              <p className="text-sm mt-2" style={{ color: "var(--ink-muted)" }}>
                 아파트를 탐험하고 사건의 흔적을 찾아보세요
               </p>
             </div>
 
             {/* 이름 입력 */}
             <div className="space-y-3 mb-5">
-              <div className="rounded-2xl p-4 bg-stone-800/30 border border-stone-700/30">
-                <p className="text-stone-400 text-xs font-medium mb-2.5 flex items-center gap-1.5">
-                  <span>👤</span> 당신의 이름
+              <div className="rounded-2xl p-4" style={{ background: "var(--surface)", border: "1px solid var(--line)" }}>
+                <p className="eyebrow flex items-center gap-1.5 mb-2.5" style={{ color: "var(--ink-muted)" }}>
+                  <Mask size={14} style={{ color: "var(--candle-soft)" }} /> 당신의 이름
                 </p>
                 <Input
                   value={inputName}
                   onChange={(e) => setInputName(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") enter(); }}
                   placeholder="이름 입력 (비워두면 &quot;나&quot;)"
-                  className="h-10 text-sm bg-stone-900/50"
+                  className="h-10 text-sm"
                   maxLength={8}
                   autoFocus
                 />
               </div>
 
-              <div className="rounded-2xl p-3.5 bg-amber-900/10 border border-amber-700/20">
-                <p className="text-amber-400 text-xs font-semibold mb-2 flex items-center gap-1.5">
-                  <span>🎮</span> 조작 방법
-                </p>
-                <div className="flex flex-wrap gap-1.5 mb-1.5">
+              {/* 조작 방법 */}
+              <div className="rounded-2xl p-4" style={{ background: "rgba(232,184,100,0.06)", border: "1px solid var(--line-strong)" }}>
+                <p className="eyebrow mb-2.5" style={{ color: "var(--candle)" }}>조작 방법</p>
+                <div className="flex flex-wrap items-center gap-1.5 mb-2">
                   {["W", "A", "S", "D"].map((k) => (
-                    <span key={k} className="bg-stone-800/70 border border-stone-600/50 text-stone-300 text-[11px] font-mono px-2 py-0.5 rounded-md leading-5">
+                    <span
+                      key={k}
+                      className="num text-xs px-2 py-1 rounded-md leading-none"
+                      style={{ background: "var(--surface-2)", border: "1px solid var(--line-strong)", color: "var(--ink)" }}
+                    >
                       {k}
                     </span>
                   ))}
-                  <span className="text-stone-500 text-xs self-center">또는</span>
+                  <span className="text-xs self-center" style={{ color: "var(--ink-faint)" }}>또는</span>
                   {["↑", "↓", "←", "→"].map((k) => (
-                    <span key={k} className="bg-stone-800/70 border border-stone-600/50 text-stone-300 text-[11px] font-mono px-2 py-0.5 rounded-md leading-5">
+                    <span
+                      key={k}
+                      className="num text-xs px-2 py-1 rounded-md leading-none"
+                      style={{ background: "var(--surface-2)", border: "1px solid var(--line-strong)", color: "var(--ink)" }}
+                    >
                       {k}
                     </span>
                   ))}
                 </div>
-                <p className="text-stone-600 text-[11px]">모바일은 화면 좌하단 조이스틱 사용</p>
+                <p className="text-xs" style={{ color: "var(--ink-muted)" }}>
+                  모바일은 화면 좌하단 조이스틱을 사용하세요
+                </p>
               </div>
             </div>
 
-            <Button
-              variant="gradient"
-              size="lg"
-              className="w-full glow-gold mb-2.5"
+            <button
               onClick={enter}
+              className={`btn-wine w-full rounded-2xl py-3.5 font-semibold flex items-center justify-center gap-2 mb-2.5 ${FOCUS_RING}`}
+              style={{ color: "#F4E4D0" }}
             >
-              🚪 입장하기
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-stone-600 hover:text-stone-400"
+              입장하기 <ArrowRight size={18} style={{ color: "rgba(244,228,208,0.7)" }} />
+            </button>
+            <button
               onClick={() => router.push("/")}
+              className={`btn-ghost w-full rounded-2xl py-2.5 text-sm flex items-center justify-center gap-1.5 ${FOCUS_RING}`}
             >
-              ← 돌아가기
-            </Button>
+              <ArrowLeft size={16} /> 돌아가기
+            </button>
           </div>
         </div>
       </main>
@@ -189,7 +207,7 @@ export default function DemoPage() {
   const demoPlayers = [demoMe, ...DEMO_NPCS];
 
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-stone-950">
+    <main className="relative w-screen h-screen overflow-hidden" style={{ background: "var(--bg)" }}>
       <GameCanvas
         currentPlayerId="demo-me"
         players={demoPlayers}
@@ -200,52 +218,48 @@ export default function DemoPage() {
 
       {/* 상단 오버레이 */}
       <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-3 pt-3 pointer-events-none">
-        <Button
-          variant="glass"
-          size="sm"
-          className="pointer-events-auto text-xs"
+        <button
           onClick={() => setStage("entry")}
+          className={`btn-ghost pointer-events-auto rounded-xl px-3 py-2 text-xs flex items-center gap-1.5 ${FOCUS_RING}`}
         >
-          ← 나가기
-        </Button>
+          <ArrowLeft size={14} /> 나가기
+        </button>
 
         {/* 현재 위치 */}
-        <div className="glass border border-amber-700/25 rounded-xl px-3 py-1.5 flex items-center gap-1.5">
-          <span className="text-amber-500 text-xs">📍</span>
-          <span className="text-stone-200 text-xs font-semibold">{currentRoom}</span>
+        <div className="glass rounded-xl px-3 py-2 flex items-center gap-1.5">
+          <Compass size={14} style={{ color: "var(--candle)" }} />
+          <span className="text-xs font-semibold" style={{ color: "var(--ink)" }}>{currentRoom}</span>
         </div>
 
-        <Button
-          variant="glass"
-          size="sm"
-          className="pointer-events-auto text-xs"
+        <button
           onClick={() => setNightMode((v) => !v)}
+          className={`btn-ghost pointer-events-auto rounded-xl px-3 py-2 text-xs flex items-center gap-1.5 ${FOCUS_RING}`}
         >
-          {nightMode ? "🌙 밤" : "☀️ 낮"}
-        </Button>
+          {nightMode
+            ? <><Moon size={14} style={{ color: "var(--candle)" }} /> 밤</>
+            : <><Sun size={14} style={{ color: "var(--candle)" }} /> 낮</>}
+        </button>
       </div>
 
       {/* 데스크탑: 우측 손님 동향 패널 */}
       <div className="absolute right-3 top-1/2 -translate-y-1/2 z-20 hidden sm:block pointer-events-none w-56">
-        <div className="glass border border-stone-700/25 rounded-2xl p-3.5">
-          <p className="text-stone-600 text-[10px] font-semibold uppercase tracking-widest mb-2.5">
-            손님 동향
+        <div className="glass rounded-2xl p-3.5">
+          <p className="eyebrow flex items-center gap-1.5 mb-2.5" style={{ color: "var(--ink-muted)" }}>
+            <Users size={13} style={{ color: "var(--candle-soft)" }} /> 손님 동향
           </p>
           {activities.length === 0 ? (
-            <p className="text-stone-700 text-xs italic">조용히 기다리는 중...</p>
+            <p className="text-xs italic" style={{ color: "var(--ink-faint)" }}>조용히 기다리는 중…</p>
           ) : (
             <div className="space-y-2">
               {activities.map((msg, i) => (
                 <div
                   key={`${i}-${msg.slice(0, 8)}`}
-                  className={cn(
-                    "text-xs leading-relaxed border-l-2 pl-2.5 transition-opacity",
-                    i === 0
-                      ? "text-stone-300 border-amber-500/60"
-                      : i === 1
-                      ? "text-stone-500 border-stone-600/40 opacity-70"
-                      : "text-stone-600 border-stone-700/30 opacity-40"
-                  )}
+                  className="text-xs leading-relaxed pl-2.5 transition-opacity"
+                  style={{
+                    borderLeft: `2px solid ${i === 0 ? "var(--candle)" : "var(--line-strong)"}`,
+                    color: i === 0 ? "var(--ink)" : i === 1 ? "var(--ink-muted)" : "var(--ink-faint)",
+                    opacity: i === 0 ? 1 : i === 1 ? 0.85 : 0.6,
+                  }}
                 >
                   {msg}
                 </div>
@@ -256,12 +270,15 @@ export default function DemoPage() {
       </div>
 
       {/* 하단: 방 설명 + 모바일 동향 */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 px-3 pb-3 pointer-events-none">
+      <div
+        className="absolute bottom-0 left-0 right-0 z-30 px-3 pb-3 pointer-events-none"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
         {/* 모바일 손님 동향 (최신 1개) */}
         {activities.length > 0 && (
           <div className="sm:hidden mb-2 flex justify-center">
-            <div className="glass border border-stone-700/25 rounded-xl px-3 py-1.5 max-w-xs">
-              <p className="text-stone-400 text-[11px] text-center leading-snug">
+            <div className="glass rounded-xl px-3 py-2 max-w-xs">
+              <p className="text-xs text-center leading-snug" style={{ color: "var(--ink-muted)" }}>
                 {activities[0]}
               </p>
             </div>
@@ -270,8 +287,8 @@ export default function DemoPage() {
 
         {/* 현재 방 설명 */}
         <div className="flex justify-center">
-          <div className="glass border border-stone-700/20 rounded-xl px-4 py-2 max-w-sm text-center">
-            <p className="text-stone-500 text-[11px] leading-relaxed italic">
+          <div className="glass rounded-xl px-4 py-2.5 max-w-sm text-center">
+            <p className="text-xs leading-relaxed italic" style={{ color: "var(--ink-muted)" }}>
               {ROOM_DESCRIPTIONS[currentRoom] ?? "특별한 것은 없어 보인다."}
             </p>
           </div>
