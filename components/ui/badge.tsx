@@ -8,27 +8,27 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary/20 text-primary",
+          "border-transparent bg-primary/20 text-[#e09aa3]",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground",
         destructive:
-          "border-red-500/30 bg-red-500/15 text-red-400",
+          "border-[#C2495A]/35 bg-[#C2495A]/15 text-[#e08a96]",
         outline:
           "border-border text-foreground",
         success:
-          "border-green-500/30 bg-green-500/15 text-green-400",
+          "border-[#86B07C]/30 bg-[#86B07C]/12 text-[#a0c596]",
         warning:
-          "border-amber-500/30 bg-amber-500/15 text-amber-400",
+          "border-[#E8B864]/30 bg-[#E8B864]/12 text-[#e8b864]",
         info:
-          "border-cyan-500/30 bg-cyan-500/15 text-cyan-400",
+          "border-[#C99A52]/30 bg-[#C99A52]/12 text-[#d6b074]",
         purple:
-          "border-purple-500/30 bg-purple-500/15 text-purple-400",
+          "border-[#C99A52]/30 bg-[#C99A52]/12 text-[#d6b074]",
         mafia:
-          "border-red-500/40 bg-red-500/20 text-red-400",
+          "border-[#C2495A]/40 bg-[#C2495A]/18 text-[#e08a96]",
         citizen:
-          "border-cyan-500/30 bg-cyan-500/20 text-cyan-400",
+          "border-[#86B07C]/30 bg-[#86B07C]/15 text-[#a0c596]",
         solo:
-          "border-amber-500/40 bg-amber-500/20 text-amber-400",
+          "border-[#E8B864]/40 bg-[#E8B864]/18 text-[#e8b864]",
       },
     },
     defaultVariants: {

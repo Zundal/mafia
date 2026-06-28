@@ -25,17 +25,17 @@ const icons: Record<ToastType, string> = {
 };
 
 const styles: Record<ToastType, string> = {
-  success: "border-green-500/40 bg-green-500/15 text-green-300",
-  error: "border-red-500/40 bg-red-500/15 text-red-300",
-  info: "border-cyan-500/40 bg-cyan-500/15 text-cyan-300",
-  warning: "border-amber-500/40 bg-amber-500/15 text-amber-300",
+  success: "border-[#86B07C]/40 bg-[#86B07C]/12 text-[#a0c596]",
+  error: "border-[#C2495A]/40 bg-[#C2495A]/12 text-[#e08a96]",
+  info: "border-[#C99A52]/40 bg-[#C99A52]/12 text-[#d6b074]",
+  warning: "border-[#E8B864]/40 bg-[#E8B864]/12 text-[#e8b864]",
 };
 
 const iconStyles: Record<ToastType, string> = {
-  success: "bg-green-500/30 text-green-400",
-  error: "bg-red-500/30 text-red-400",
-  info: "bg-cyan-500/30 text-cyan-400",
-  warning: "bg-amber-500/30 text-amber-400",
+  success: "bg-[#86B07C]/25 text-[#a0c596]",
+  error: "bg-[#C2495A]/25 text-[#e08a96]",
+  info: "bg-[#C99A52]/25 text-[#d6b074]",
+  warning: "bg-[#E8B864]/25 text-[#e8b864]",
 };
 
 function Toast({ message, type = "info", duration = 3000, onClose }: ToastProps) {
@@ -59,7 +59,7 @@ function Toast({ message, type = "info", duration = 3000, onClose }: ToastProps)
       <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${iconStyles[type]}`}>
         {icons[type]}
       </span>
-      <p className="text-sm font-medium text-slate-100">{message}</p>
+      <p className="text-sm font-medium" style={{ color: "var(--ink)" }}>{message}</p>
     </div>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, ArrowRight, Users, Mask } from "@/app/components/icons";
 
 export default function JoinPage() {
   const router = useRouter();
@@ -15,58 +17,117 @@ export default function JoinPage() {
     router.push(`/game?gameId=${gameId.trim()}`);
   };
 
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 p-3 sm:p-4 flex flex-col items-center justify-center">
-      <div className="w-full max-w-md glass rounded-3xl p-5 sm:p-8 shadow-2xl border border-slate-700/50">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent text-center mb-3">
-          🎮 게임 참여
-        </h1>
-        <p className="text-slate-300 text-center mb-8 text-sm font-medium">
-          게임 ID를 입력하여 참여하세요
-        </p>
+  const steps = [
+    "게임 호스트에게 게임 ID를 받으세요",
+    "아래에 게임 ID를 입력하세요",
+    "\"게임 참여\" 버튼을 누르세요",
+    "자신의 이름을 선택하세요",
+  ];
 
-        <div className="glass-light rounded-xl p-4 mb-6 border border-cyan-500/30 bg-cyan-500/10">
-          <p className="text-cyan-400 font-semibold text-sm mb-2 text-center">
-            📋 게임 참여 방법
+  return (
+    <main
+      className="relative min-h-screen flex flex-col items-center justify-center px-4 py-10 overflow-hidden"
+      style={{ background: "var(--bg)" }}
+    >
+      {/* 따뜻한 앰비언트 */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(ellipse 90% 50% at 50% 28%, rgba(140,28,36,0.14) 0%, transparent 66%)" }}
+        />
+        <div
+          className="absolute top-0 left-0 right-0 h-px"
+          style={{ background: "linear-gradient(to right, transparent, rgba(201,154,82,0.3), transparent)" }}
+        />
+      </div>
+
+      <div className="relative w-full max-w-sm animate-fade-in-up">
+        {/* ── 헤더 ─────────────────────────────────────────────────── */}
+        <div className="text-center">
+          <span
+            className="inline-flex items-center justify-center rounded-2xl mb-4"
+            style={{ width: 52, height: 52, background: "rgba(232,184,100,0.08)", border: "1px solid var(--line-strong)" }}
+          >
+            <Mask size={26} style={{ color: "var(--candle)" }} />
+          </span>
+          <p className="eyebrow">집들이 미스터리 · 입장</p>
+          <h1
+            className="font-display mt-3 leading-[1.1] text-glow-candle"
+            style={{ fontSize: "clamp(1.9rem, 8vw, 2.4rem)", color: "var(--ink)" }}
+          >
+            게임 참여
+          </h1>
+          <div className="divider-ornament mt-5 mb-1 mx-auto max-w-[160px]">
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--candle-soft)" }} />
+          </div>
+          <p className="text-sm mt-3" style={{ color: "var(--ink-muted)" }}>
+            게임 ID를 입력하여 참여하세요
           </p>
-          <ol className="text-slate-300 text-xs space-y-1.5 list-decimal list-inside">
-            <li>게임 호스트에게 게임 ID를 받으세요</li>
-            <li>아래에 게임 ID를 입력하세요</li>
-            <li>"게임 참여" 버튼을 누르세요</li>
-            <li>자신의 이름을 선택하세요</li>
+        </div>
+
+        {/* ── 참여 방법 ────────────────────────────────────────────── */}
+        <div className="paper-card rounded-2xl mt-7 px-5 py-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Users size={15} style={{ color: "var(--candle)" }} />
+            <span className="eyebrow" style={{ color: "var(--ink-muted)" }}>게임 참여 방법</span>
+          </div>
+          <ol className="space-y-2.5">
+            {steps.map((step, idx) => (
+              <li key={idx} className="flex items-start gap-3">
+                <span
+                  className="num flex items-center justify-center rounded-md shrink-0 text-xs"
+                  style={{ width: 22, height: 22, background: "rgba(232,184,100,0.1)", color: "var(--candle)" }}
+                >
+                  {idx + 1}
+                </span>
+                <span className="text-sm leading-snug pt-0.5" style={{ color: "var(--ink-muted)" }}>
+                  {step}
+                </span>
+              </li>
+            ))}
           </ol>
         </div>
 
-        <div className="mb-6">
-          <label className="block text-slate-300 text-sm font-medium mb-2">
+        {/* ── 입력 ─────────────────────────────────────────────────── */}
+        <div className="mt-6">
+          <label htmlFor="game-id" className="eyebrow block mb-2.5">
             게임 ID
           </label>
-          <input
+          <Input
+            id="game-id"
             type="text"
             value={gameId}
             onChange={(e) => setGameId(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                handleJoin();
-              }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleJoin();
             }}
             placeholder="예: game-1234567890"
-            className="w-full px-4 py-3.5 rounded-xl glass-light text-slate-100 placeholder-slate-400 border border-slate-700/50 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50 text-lg transition-all"
+            className="num h-12 text-base"
+            autoFocus
           />
         </div>
 
+        {/* ── 액션 ─────────────────────────────────────────────────── */}
         <button
           onClick={handleJoin}
-          className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold py-4 px-6 rounded-xl text-lg transition-all shadow-lg shadow-cyan-500/25 active:scale-95 hover:shadow-xl hover:shadow-cyan-500/30"
+          className="btn-wine w-full rounded-2xl mt-5 group"
         >
-          게임 참여
+          <span className="px-5 py-4 flex items-center justify-center gap-2.5">
+            <span className="font-semibold text-base" style={{ color: "#F4E4D0" }}>
+              게임 참여
+            </span>
+            <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" style={{ color: "rgba(244,228,208,0.7)" }} />
+          </span>
         </button>
 
         <button
           onClick={() => router.push("/")}
-          className="w-full mt-3 glass-light hover:bg-slate-800/50 text-slate-100 font-medium py-3 px-6 rounded-xl transition-all border border-slate-700/50"
+          className="btn-ghost w-full rounded-2xl mt-2.5 group"
         >
-          ← 홈으로
+          <span className="px-5 py-3.5 flex items-center justify-center gap-2 text-sm font-medium">
+            <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
+            홈으로
+          </span>
         </button>
       </div>
     </main>
